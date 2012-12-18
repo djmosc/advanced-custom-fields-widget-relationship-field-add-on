@@ -628,6 +628,9 @@ if ( ! class_exists( 'acf_Widget' ) ) {
 		*	getMasterMenuItems
 		*	- this function retrieves and caches menu items for specific menu
 		*
+		* 	@params
+		*  	- $menu_location (string) - location of the menu to use for inheritance
+		*
 		*	@author Dallas Johnson
 		*
 		*-------------------------------------------------------------------------------------*/
