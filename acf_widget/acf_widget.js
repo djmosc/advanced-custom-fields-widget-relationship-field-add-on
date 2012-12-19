@@ -6,10 +6,10 @@
 
 	//Assigning proxy fucnc
 	acf.relationship_update_results = function (div) {
-		var post_type = div.attr('data-post_type');
+		var type = div.attr('data-post_type');
 
 		//if it's a widget, use our function
-		if (post_type == 'widget_field') {
+		if (type == 'widget_field') {
 			// add loading class, stops scroll loading
 			div.addClass('loading');
 
@@ -18,7 +18,7 @@
 			var s = div.attr('data-s'),
 				paged = parseInt(div.attr('data-paged')),
 				taxonomy = div.attr('data-taxonomy'),
-				post_type = div.attr('data-post_type'),
+				post_type = type,
 				lang = div.attr('data-lang'),
 				left = div.find('.relationship_left .relationship_list'),
 				right = div.find('.relationship_right .relationship_list');
