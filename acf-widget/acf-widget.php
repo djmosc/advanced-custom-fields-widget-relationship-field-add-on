@@ -284,7 +284,7 @@ if ( ! class_exists( 'acf_Widget' ) ) {
 		 *
 		 *-------------------------------------------------------------------------------------*/
 		function admin_print_scripts() {
-			wp_enqueue_script( 'acf-widget', plugin_dir_url(__FILE__) . 'acf_widget.js', array( 'jquery', 'acf-input-actions' ) );
+			wp_enqueue_script( 'acf-widget', plugin_dir_url(__FILE__) . 'acf-widget.js', array( 'jquery', 'acf-input-actions' ) );
 		}
 
 
