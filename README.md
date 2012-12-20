@@ -13,14 +13,14 @@ Create a new `fields` directory in your theme and copy the `acf-widget` director
 
 
 ##Note
-If you put the directory somewhere else, you can use a filter to specify the path:
+If you put the directory somewhere else, you can use a filter to specify the path*:
 
     function change_the_path( $dir ) {
         return PATH_TO_ACF-WIDGET_DIRECTORY;
     }
     add_filter( 'acf-widget-directory', 'change_the_path' );
 
-Don't forget to update the path in the `register_field` function as well.
+*Don't forget to update the path in the `register_field` function as well.
 
 
 
@@ -32,7 +32,7 @@ Add a new ACF field to your ACF Field Group. Select `Widget List` from the field
 
 ## Configure your widgets
 
-In WP Admin, go to `Appearance`, then `Widgets` and configure ALL widgets you`d like to use. This will be your "pool" of available widgets.
+In WP Admin, go to `Appearance`, then `Widgets` and configure ALL widgets you'd like to use. This will be your "pool" of available widgets.
 
 ## Select desired widgets from the page level
 
