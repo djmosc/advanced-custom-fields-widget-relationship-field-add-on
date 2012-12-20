@@ -2,12 +2,15 @@
 
 This add-on to Advanced Custom Fields allows you to filter widgets on a page-by-page basis.
 
+
+
 # Installation
 
 Create a new `fields` directory in your theme and copy the `acf-widget` directory to it. In your `functions.php` file, add the following:
 
     if ( function_exists( `register_field` ) )
         register_field( `acf_Widget`, plugin_dir_path(__FILE__) . `fields/acf-widget/acf-widget.php` );
+
 
 ##Note
 If you put the directory somewhere else, you can use a filter to specify the path:
@@ -16,6 +19,9 @@ If you put the directory somewhere else, you can use a filter to specify the pat
         return PATH_TO_`acf-widget`_DIRECTORY;
     }
     add_filter( `acf-widget-directory`, `change_the_path` );
+
+Don't forget to update the path in the `register_field` function as well.
+
 
 
 #Usage
@@ -30,7 +36,7 @@ In WP Admin, go to `Appearance`, then `Widgets` and configure ALL widgets you`d 
 
 ## Select desired widgets from the page level
 
-Assuming you applied the ACF Field Group to the `page` post type, in WP Admin, go to `Pages`, then edit a page. You should have a new relationship field for each sidebar using acf-widget. Select the widgets you`d like to display on that page. Select `----Inherit from Parent----` to include all of the parent page`s widgets. Drag the options around to sort them in your preferred order.
+Assuming you applied the ACF Field Group to the `page` post type, in WP Admin, go to `Pages`, then edit a page. You should have a new relationship field for each sidebar using acf-widget. Select the widgets you'd like to display on that page. Select `----Inherit from Parent----` to include all of the parent page's widgets. Drag the options around to sort them in your preferred order.
 
 ## Edit your template`s sidebar file(s)
 
