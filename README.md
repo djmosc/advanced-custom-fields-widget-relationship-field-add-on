@@ -8,17 +8,17 @@ This add-on to Advanced Custom Fields allows you to filter widgets on a page-by-
 
 Create a new `fields` directory in your theme and copy the `acf-widget` directory to it. In your `functions.php` file, add the following:
 
-    if ( function_exists( `register_field` ) )
-        register_field( `acf_Widget`, plugin_dir_path(__FILE__) . `fields/acf-widget/acf-widget.php` );
+    if ( function_exists( 'register_field' ) )
+        register_field( 'acf_Widget', plugin_dir_path(__FILE__) . 'fields/acf-widget/acf-widget.php' );
 
 
 ##Note
 If you put the directory somewhere else, you can use a filter to specify the path:
 
     function change_the_path( $dir ) {
-        return PATH_TO_`acf-widget`_DIRECTORY;
+        return PATH_TO_ACF-WIDGET_DIRECTORY;
     }
-    add_filter( `acf-widget-directory`, `change_the_path` );
+    add_filter( 'acf-widget-directory', 'change_the_path' );
 
 Don't forget to update the path in the `register_field` function as well.
 
@@ -42,10 +42,10 @@ Assuming you applied the ACF Field Group to the `page` post type, in WP Admin, g
 
 In `sidebar.php`, replace `dynamic_sidebar()` with the new `dynamic_widgets()` function to retrieve widgets:
 
-    if ( ! acf_Widget::dynamic_widgets( `Side Bar` ) ) {
+    if ( ! acf_Widget::dynamic_widgets( 'Side Bar' ) ) {
 
        //fallback to default function if you like
-       dynamic_sidebar( `Side Bar` );
+       dynamic_sidebar( 'Side Bar' );
 
     }
 
