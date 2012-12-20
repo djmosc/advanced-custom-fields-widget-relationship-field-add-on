@@ -36,7 +36,7 @@ In WP Admin, go to `Appearance`, then `Widgets` and configure ALL widgets you`d 
 
 ## Select desired widgets from the page level
 
-Assuming you applied the ACF Field Group to the `page` post type, in WP Admin, go to `Pages`, then edit a page. You should have a new relationship field for each sidebar using acf-widget. Select the widgets you'd like to display on that page. Select `----Inherit from Parent----` to include all of the parent page's widgets. Drag the options around to sort them in your preferred order.
+Assuming you applied the ACF Field Group to the `page` post type, in WP Admin, go to `Pages`, then edit a page. You should have a new relationship field for each sidebar using acf-widget. Select the widgets you'd like to display on the page - select `----Inherit from Parent----` to include all of the parent page's widgets as well. Drag the options around to sort them in your preferred order.
 
 ## Edit your template`s sidebar file(s)
 
