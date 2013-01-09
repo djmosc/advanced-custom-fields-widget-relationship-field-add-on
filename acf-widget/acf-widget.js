@@ -1,4 +1,5 @@
-;(function ($) {
+;
+(function ($) {
 
 	//Saving the original func
 	var org_relationship_update_results = acf.relationship_update_results;
@@ -17,6 +18,7 @@
 			var post_type = type,
 				left = div.find('.relationship_left .relationship_list'),
 				right = div.find('.relationship_right .relationship_list'),
+				paged = parseInt(div.attr('data-paged')),
 				args = div.attr('data-args');
 
 			// get results
@@ -26,6 +28,7 @@
 				dataType:'html',
 				data    :{
 					'action'    :'acf_get_widget_results',
+					'paged'     :paged,
 					'args'      :args,
 					'post_type' :post_type,
 					'field_name':div.parent().attr('data-field_name'),
@@ -34,7 +37,12 @@
 				success :function (html) {
 
 					div.removeClass('no-results').removeClass('loading');
-					left.find('li:not(.load-more)').remove();
+
+					// new search?
+					if (paged == 1) {
+						left.find('li:not(.load-more)').remove();
+					}
+
 
 					// no results?
 					if (!html) {
@@ -42,12 +50,20 @@
 						return;
 					}
 
+
 					// append new results
 					left.find('.load-more').before(html);
 
+
+					// less than 10 results?
+					var ul = $('<ul>' + html + '</ul>');
+					if (ul.find('li').length < 10) {
+						div.addClass('no-results');
+					}
+
+
 					// hide values
 					acf.relationship_hide_results(div);
-
 				}
 			});
 		}

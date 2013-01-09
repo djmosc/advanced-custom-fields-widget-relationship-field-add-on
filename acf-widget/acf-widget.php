@@ -40,25 +40,32 @@ class acf_Widget extends acf_Relationship {
 		$options = array(
 			'sidebar'       => '',
 			'inherit_from'  => '',
-			'menu_location' => ''
+			'menu_location' => '',
+			'posts_per_page' => 10,
+			'paged' => 0
 		);
 
 		$ajax = isset( $_POST['action'] ) ? true : false;
 
 		// override options with posted values
-		if ( $ajax )
+		if ( $ajax ) {
+
+			//we're using our own 'args' variable instead of the built-in data attributes
 			$options = array_merge( $options, json_decode( stripslashes( $_POST['args'] ), true ) );
 
+			//set the paged data-attribute (only default attribute we're keeping
+			if( array_key_exists('paged', $_POST) )
+				$options['paged'] = $_POST['paged']-1;
+		}
 
 		// load the widget list
-		$posts = $this->get_widgets( $options );
+		$paging = array_chunk( $this->get_widgets( $options ), $options['posts_per_page'] );
+		$current_page = $paging[$options['paged']];
 
 		$output = '';
 
-		if ( $posts ) {
-			foreach ( $posts as $post ) {
-				$output .= '<li><a href="javascript:;" data-post_id="' . $post->ID . '"><span class="relationship-item-info">' . $post->type . '</span>' . $post->title . '<span class="acf-button-add"></span></a></li>';
-			}
+		foreach ( $current_page as $post ) {
+			$output .= '<li><a href="javascript:;" data-post_id="' . $post->ID . '"><span class="relationship-item-info">' . $post->type . '</span>' . $post->title . '<span class="acf-button-add"></span></a></li>';
 		}
 
 		echo $output;
@@ -97,7 +104,7 @@ class acf_Widget extends acf_Relationship {
 
 		$args = htmlspecialchars( json_encode( $args ), ENT_QUOTES, 'UTF-8' );
 		?>
-    <div class="acf_relationship" data-post_type="widget_field" data-args="<?php echo $args; ?>" data-max="" data-s="" data-paged="" data-taxonomy="">
+    <div class="acf_relationship" data-post_type="widget_field" data-args="<?php echo $args; ?>" data-paged="1">
 
         <!-- Hidden Blank default value -->
         <input type="hidden" name="<?php echo $field['name']; ?>" value="" />
