@@ -407,8 +407,9 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 			global $acf;
 			$post = get_queried_object();
 
-			//set default
+			//set defaults
 			$acf_field = false;
+			$include_list = array();
 
 			//get acf fields for loop
 			$acf_fields = get_fields( $post->ID );
@@ -443,9 +444,6 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 				if ( $acf_field ) {
 
-					//set default
-					$include_list = array();
-
 					if ( get_field( $acf_field, $post->ID ) ) {
 
 						//build our include list
@@ -453,12 +451,12 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 					}
 
-					//set the function's normal array for looping
-					$sidebars_widgets[$index] = $include_list;
-
 				}
 
 			}
+
+			//set the function's normal array for looping
+			$sidebars_widgets[$index] = $include_list;
 			/*--------------------------------------------
 			* end custom
 			*---------------------------------------------*/
