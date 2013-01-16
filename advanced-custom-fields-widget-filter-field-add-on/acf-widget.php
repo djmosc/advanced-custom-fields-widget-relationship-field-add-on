@@ -28,12 +28,12 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 	class acf_Widget extends acf_Relationship {
 
-		//creating a unique string we can use for inheritance
+		//create a unique string for inheritance
 		const INHERIT_STRING = '--INHERIT--';
 		const INHERIT_TITLE  = '-------- Inherit From Parent --------';
 
-		//variables for loading files
-		var $dir, $path;
+		//variable for loading files
+		private $dir;
 
 		/*--------------------------------------------------------------------------------------
 		*
@@ -45,13 +45,12 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		public function __construct( $parent ) {
 
 			//set paths
-			$this->path = plugin_dir_path(__FILE__);
-			$this->dir = plugins_url('',__FILE__);
+			$this->dir = trailingslashit(plugins_url('',__FILE__));
 
 			parent::__construct( $parent );
 
 			$this->name  = 'widget_field';
-			$this->title = __( "Widget List", 'acf' );
+			$this->title = __( "Widget Relationship", 'acf' );
 
 			// actions
 			add_action( 'wp_ajax_acf_get_widget_results', array( &$this, 'acf_get_widget_results' ) );
@@ -140,33 +139,33 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 			$args = htmlspecialchars( json_encode( $args ), ENT_QUOTES, 'UTF-8' );
 			?>
-		<div class="acf_relationship" data-post_type="widget_field" data-args="<?php echo $args; ?>" data-paged="1">
+        <div class="acf_relationship" data-post_type="widget_field" data-args="<?php echo $args; ?>" data-paged="1">
 
-			<!-- Hidden Blank default value -->
-			<input type="hidden" name="<?php echo $field['name']; ?>" value="" />
+            <!-- Hidden Blank default value -->
+            <input type="hidden" name="<?php echo $field['name']; ?>" value="" />
 
-			<!-- Template for value -->
-			<script type="text/html" class="tmpl-li">
-				<li>
-					<a href="#" data-post_id="{post_id}">{title}<span class="acf-button-remove"></span></a>
-					<input type="hidden" name="<?php echo $field['name']; ?>[]" value="{post_id}" />
-				</li>
-			</script>
-			<!-- / Template for value -->
+            <!-- Template for value -->
+            <script type="text/html" class="tmpl-li">
+                <li>
+                    <a href="#" data-post_id="{post_id}">{title}<span class="acf-button-remove"></span></a>
+                    <input type="hidden" name="<?php echo $field['name']; ?>[]" value="{post_id}" />
+                </li>
+            </script>
+            <!-- / Template for value -->
 
-			<!-- Left List -->
-			<div class="relationship_left">
-				<ul class="bl relationship_list">
-					<li class="load-more">
-						<div class="acf-loading"></div>
-					</li>
-				</ul>
-			</div>
-			<!-- /Left List -->
+            <!-- Left List -->
+            <div class="relationship_left">
+                <ul class="bl relationship_list">
+                    <li class="load-more">
+                        <div class="acf-loading"></div>
+                    </li>
+                </ul>
+            </div>
+            <!-- /Left List -->
 
-			<!-- Right List -->
-			<div class="relationship_right">
-				<ul class="bl relationship_list">
+            <!-- Right List -->
+            <div class="relationship_right">
+                <ul class="bl relationship_list">
 					<?php
 					if ( $field['value'] ) {
 
@@ -180,11 +179,11 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 					}
 					?>
-				</ul>
-			</div>
-			<!-- / Right List -->
+                </ul>
+            </div>
+            <!-- / Right List -->
 
-		</div>
+        </div>
 		<?php
 
 		}
@@ -209,11 +208,11 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 			$field = array_merge( $defaults, $field );
 			?>
-		<tr class="field_option field_option_<?php echo $this->name; ?>">
-			<td class="label">
-				<label for=""><?php _e( "Sidebar", 'acf' ); ?></label>
-			</td>
-			<td>
+        <tr class="field_option field_option_<?php echo $this->name; ?>">
+            <td class="label">
+                <label for=""><?php _e( "Sidebar", 'acf' ); ?></label>
+            </td>
+            <td>
 				<?php
 				global $wp_registered_sidebars;
 				$sidebars = array();
@@ -234,13 +233,13 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 				) );
 
 				?>
-			</td>
-		</tr>
-		<tr class="field_option field_option_<?php echo $this->name; ?>">
-			<td class="label">
-				<label><?php _e( "Inherit From", 'acf' ); ?></label>
-			</td>
-			<td>
+            </td>
+        </tr>
+        <tr class="field_option field_option_<?php echo $this->name; ?>">
+            <td class="label">
+                <label><?php _e( "Inherit From", 'acf' ); ?></label>
+            </td>
+            <td>
 				<?php
 				$options = array(
 					''          => 'None',
@@ -255,13 +254,13 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 					'choices'   => $options
 				) );
 				?>
-			</td>
-		</tr>
-		<tr class="field_option field_option_<?php echo $this->name; ?>">
-			<td class="label">
-				<label><?php _e( "If \"Menu\" inheritance, select menu location to use", 'acf' ); ?></label>
-			</td>
-			<td>
+            </td>
+        </tr>
+        <tr class="field_option field_option_<?php echo $this->name; ?>">
+            <td class="label">
+                <label><?php _e( "If \"Menu\" inheritance, select menu location to use", 'acf' ); ?></label>
+            </td>
+            <td>
 				<?php
 				//get menu ID for the main location
 				$menus   = get_nav_menu_locations();
@@ -278,8 +277,8 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 					'choices'   => $options
 				) );
 				?>
-			</td>
-		</tr>
+            </td>
+        </tr>
 		<?php
 
 		}
@@ -316,7 +315,12 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		public function admin_print_scripts() {
 
 			// proxy function for acf.relationship_update_results
-			wp_enqueue_script( 'advanced-custom-fields-widget-filter-field-add-on', trailingslashit($this->path) . 'advanced-custom-fields-widget-filter-field-add-on.js', array( 'jquery', 'acf-input-actions' ) );
+			global $pagenow;
+
+			//make sure we don't include it on all admin pages
+			if( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) )	{
+				wp_enqueue_script( 'acf-widget', $this->dir . 'acf-widget.js', array( 'jquery', 'acf-input-actions' ) );
+			}
 
 		}
 
@@ -332,7 +336,12 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		public function admin_print_styles() {
 
 			// styles to account for no search box
-			wp_enqueue_style( 'advanced-custom-fields-widget-filter-field-add-on', trailingslashit($this->path) . 'advanced-custom-fields-widget-filter-field-add-on.css', 'acf-input' );
+			global $pagenow;
+
+			//make sure we don't include it on all admin pages
+			if( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) )	{
+				wp_enqueue_style( 'acf-widget', $this->dir . 'acf-widget.css', 'acf-input' );
+			}
 
 		}
 
@@ -630,7 +639,7 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 					endswitch;
 
 					//this allows for custom parent options outside of PAGE and MENU
-					$parent_post = apply_filters( 'advanced-custom-fields-widget-filter-field-add-on-parent-post', $parent_post, $post );
+					$parent_post = apply_filters( 'acf-widget-parent-post', $parent_post, $post );
 
 					if ( $parent_post )
 						array_splice( $widgets, $i, 1, self::buildIncludeList( $parent_post, $field ) );
@@ -720,7 +729,7 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		private static function getMasterMenuItems( $menu_location ) {
 
 			//check for cache
-			if ( false === ( $menu_items = wp_cache_get( 'advanced-custom-fields-widget-filter-field-add-on-menu-items-' . $menu_location ) ) ) {
+			if ( false === ( $menu_items = wp_cache_get( 'acf-widget-menu-items-' . $menu_location ) ) ) {
 
 				//set default
 				$menu_id = false;
@@ -744,7 +753,7 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 				//cache result
 				if ( ! is_wp_error( $menu_items ) )
-					wp_cache_set( 'advanced-custom-fields-widget-filter-field-add-on-menu-items-' . $menu_location, $menu_items );
+					wp_cache_set( 'acf-widget-menu-items-' . $menu_location, $menu_items );
 			}
 
 			return $menu_items;
@@ -755,9 +764,11 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 }
 
-function acf_widget_register_field(){
-	if( function_exists( 'register_field' ) ) {
-		register_field( 'acf_Widget', __FILE__ );
+if( ! function_exists( 'acf_widget_register_field' ) ) {
+	function acf_widget_register_field(){
+		if( function_exists( 'register_field' ) ) {
+			register_field( 'acf_Widget', __FILE__ );
+		}
 	}
 }
 add_action( 'init', 'acf_widget_register_field' );
