@@ -24,7 +24,7 @@ License: GPL3
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
+if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 	class acf_Widget extends acf_Relationship {
 
@@ -45,7 +45,7 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		public function __construct( $parent ) {
 
 			//set paths
-			$this->dir = trailingslashit(plugins_url('',__FILE__));
+			$this->dir = trailingslashit( plugins_url( '', __FILE__ ) );
 
 			parent::__construct( $parent );
 
@@ -54,8 +54,8 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 			// actions
 			add_action( 'wp_ajax_acf_get_widget_results', array( &$this, 'acf_get_widget_results' ) );
-			add_action( 'admin_print_scripts', array( &$this, 'admin_print_scripts' ) );
-			add_action( 'admin_print_styles', array( &$this, 'admin_print_styles' ) );
+//			add_action( 'admin_print_scripts', array( &$this, 'admin_print_scripts' ), 12, 0 );  //moved to inline script because ACF chokes if you load additional scripts
+			add_action( 'admin_print_styles', array( &$this, 'admin_print_styles' ), 12, 0 );
 
 		}
 
@@ -72,11 +72,11 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 			// vars
 			$options = array(
-				'sidebar'       => '',
-				'inherit_from'  => '',
-				'menu_location' => '',
+				'sidebar'        => '',
+				'inherit_from'   => '',
+				'menu_location'  => '',
 				'posts_per_page' => 10,
-				'paged' => 0
+				'paged'          => 0
 			);
 
 			$ajax = isset( $_POST['action'] ) ? true : false;
@@ -88,13 +88,13 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 				$options = array_merge( $options, json_decode( stripslashes( $_POST['args'] ), true ) );
 
 				//set the paged data-attribute (only default attribute we're keeping)
-				if( array_key_exists('paged', $_POST) )
-					$options['paged'] = $_POST['paged']-1;
+				if ( array_key_exists( 'paged', $_POST ) )
+					$options['paged'] = $_POST['paged'] - 1;
 
 			}
 
 			// load the widget list
-			$paging = array_chunk( $this->get_widgets( $options ), $options['posts_per_page'] );
+			$paging       = array_chunk( $this->get_widgets( $options ), $options['posts_per_page'] );
 			$current_page = $paging[$options['paged']];
 
 			$output = '';
@@ -139,7 +139,14 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 			$args = htmlspecialchars( json_encode( $args ), ENT_QUOTES, 'UTF-8' );
 			?>
-        <div class="acf_relationship" data-post_type="widget_field" data-args="<?php echo $args; ?>" data-paged="1">
+
+        <!-- moves js inline because ACF chokes when loading additional scripts -->
+        <script type="text/javascript">
+            (function(a){var b=acf.relationship_update_results;acf.relationship_update_results=function(c){var d=c.attr("data-post_type");if("widget_relationship_field"==d){c.addClass("loading");var e=c.find(".relationship_left .relationship_list"),g=(c.find(".relationship_right .relationship_list"),parseInt(c.attr("data-paged"))),h=c.attr("data-args");a.ajax({url:ajaxurl,type:"post",dataType:"html",data:{action:"acf_get_widget_results",paged:g,args:h,post_type:d,field_name:c.parent().attr("data-field_name"),field_key:c.parent().attr("data-field_key")},success:function(b){if(c.removeClass("no-results").removeClass("loading"),1==g&&e.find("li:not(.load-more)").remove(),!b)return c.addClass("no-results"),void 0;e.find(".load-more").before(b);var d=a("<ul>"+b+"</ul>");10>d.find("li").length&&c.addClass("no-results"),acf.relationship_hide_results(c)}})}else b(c)}})(jQuery);
+        </script>
+        <!-- /script -->
+
+        <div class="acf_relationship" data-post_type="widget_relationship_field" data-args="<?php echo $args; ?>" data-paged="1">
 
             <!-- Hidden Blank default value -->
             <input type="hidden" name="<?php echo $field['name']; ?>" value="" />
@@ -200,7 +207,6 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 			// vars
 			$defaults = array(
-				'max'                => '',
 				'sidebar'            => '',
 				'inherit_from'       => '',
 				'menu_location'      => ''
@@ -210,18 +216,20 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 			?>
         <tr class="field_option field_option_<?php echo $this->name; ?>">
             <td class="label">
-                <label for=""><?php _e( "Sidebar", 'acf' ); ?></label>
+                <label for="">Sidebar</label>
             </td>
             <td>
 				<?php
 				global $wp_registered_sidebars;
 				$sidebars = array();
 
-				foreach ( (array) $wp_registered_sidebars as $sidebar ) {
-					if ( ! is_active_sidebar( $sidebar['id'] ) )
-						continue;
+				if ( ! empty( $wp_registered_sidebars ) ) {
+					foreach ( (array) $wp_registered_sidebars as $sidebar ) {
+						if ( ! is_active_sidebar( $sidebar['id'] ) )
+							continue;
 
-					$sidebars[$sidebar['id']] = $sidebar['name'];
+						$sidebars[$sidebar['id']] = $sidebar['name'];
+					}
 				}
 
 				$this->parent->create_field( array(
@@ -237,7 +245,7 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
         </tr>
         <tr class="field_option field_option_<?php echo $this->name; ?>">
             <td class="label">
-                <label><?php _e( "Inherit From", 'acf' ); ?></label>
+                <label>Inherit From</label>
             </td>
             <td>
 				<?php
@@ -258,7 +266,7 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
         </tr>
         <tr class="field_option field_option_<?php echo $this->name; ?>">
             <td class="label">
-                <label><?php _e( "If \"Menu\" inheritance, select menu location to use", 'acf' ); ?></label>
+                <label>If "Menu" inheritance, select menu location to use</label>
             </td>
             <td>
 				<?php
@@ -266,8 +274,12 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 				$menus   = get_nav_menu_locations();
 				$options = array( '' => 'None' );
 
-				foreach ( $menus as $menu_key => $menu_value ) {
-					$options[$menu_key] = ucwords( $menu_key );
+				if ( ! empty( $menus ) ) {
+
+					foreach ( $menus as $menu_key => $menu_value ) {
+						$options[$menu_key] = ucwords( $menu_key );
+					}
+
 				}
 
 				$this->parent->create_field( array(
@@ -318,8 +330,8 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 			global $pagenow;
 
 			//make sure we don't include it on all admin pages
-			if( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) )	{
-				wp_enqueue_script( 'acf-widget', $this->dir . 'acf-widget.js', array( 'jquery', 'acf-input-actions' ) );
+			if ( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) ) {
+				wp_enqueue_script( 'acf-widget-relationship-script', $this->dir . 'acf-widget.js', array( 'jquery', 'acf-input-actions' ) );
 			}
 
 		}
@@ -339,8 +351,8 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 			global $pagenow;
 
 			//make sure we don't include it on all admin pages
-			if( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) )	{
-				wp_enqueue_style( 'acf-widget', $this->dir . 'acf-widget.css', 'acf-input' );
+			if ( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) ) {
+				wp_enqueue_style( 'acf-widget-relationship-style', $this->dir . 'acf-widget.css', 'acf-input' );
 			}
 
 		}
@@ -502,7 +514,7 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		 *	@author Dallas Johnson
 		 *
 		 *-------------------------------------------------------------------------------------*/
-		private function get_widgets( $options ) {
+		public function get_widgets( $options ) {
 
 			global $wp_registered_sidebars;
 
@@ -564,7 +576,7 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		*	@author Dallas Johnson
 		*
 		*-------------------------------------------------------------------------------------*/
-		private function get_widget_object( $id ) {
+		public function get_widget_object( $id ) {
 
 			if ( $id == self::INHERIT_STRING )
 				return (object) array(
@@ -606,7 +618,7 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		 *	@author Dallas Johnson
 		 *
 		 *-------------------------------------------------------------------------------------*/
-		private static function buildIncludeList( $post, $field ) {
+		public static function buildIncludeList( $post, $field ) {
 
 			$widgets = get_field( $field['name'], $post->ID );
 
@@ -665,7 +677,7 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		 *	@author Dallas Johnson
 		 *
 		 *-------------------------------------------------------------------------------------*/
-		private static function getMenuParentIDFromPostID( $post_id = 0, $menu_location ) {
+		public static function getMenuParentIDFromPostID( $post_id = 0, $menu_location ) {
 
 			$menu_items = self::getMasterMenuItems( $menu_location );
 
@@ -696,7 +708,7 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		*	@author Dallas Johnson
 		*
 		*-------------------------------------------------------------------------------------*/
-		private static function getPostIDFromMenuID( $menu_id = 0, $menu_location ) {
+		public static function getPostIDFromMenuID( $menu_id = 0, $menu_location ) {
 
 			$menu_items = self::getMasterMenuItems( $menu_location );
 
@@ -726,7 +738,7 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		*	@author Dallas Johnson
 		*
 		*-------------------------------------------------------------------------------------*/
-		private static function getMasterMenuItems( $menu_location ) {
+		public static function getMasterMenuItems( $menu_location ) {
 
 			//check for cache
 			if ( false === ( $menu_items = wp_cache_get( 'acf-widget-menu-items-' . $menu_location ) ) ) {
@@ -764,9 +776,9 @@ if( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 }
 
-if( ! function_exists( 'acf_widget_register_field' ) ) {
-	function acf_widget_register_field(){
-		if( function_exists( 'register_field' ) ) {
+if ( ! function_exists( 'acf_widget_register_field' ) ) {
+	function acf_widget_register_field() {
+		if ( function_exists( 'register_field' ) ) {
 			register_field( 'acf_Widget', __FILE__ );
 		}
 	}

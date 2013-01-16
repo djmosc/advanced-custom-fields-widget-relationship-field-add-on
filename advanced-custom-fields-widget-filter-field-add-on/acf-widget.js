@@ -1,22 +1,24 @@
-;
 (function ($) {
 
-	//Saving the original func
-	var org_relationship_update_results = acf.relationship_update_results;
+	//////////////////////////////////////////////////////////////////////
+	// This is for reference only, moved inline so ACF doesn't choke
+	//////////////////////////////////////////////////////////////////////
 
 	//Assigning proxy fucnc
+	var org_relationship_update_results = acf.relationship_update_results;
+
 	acf.relationship_update_results = function (div) {
+
 		var type = div.attr('data-post_type');
 
 		//if it's our widget field, use our function
-		if (type == 'widget_field') {
+		if (type == 'widget_relationship_field') {
+
 			// add loading class, stops scroll loading
 			div.addClass('loading');
 
-
 			// vars
-			var post_type = type,
-				left = div.find('.relationship_left .relationship_list'),
+			var left = div.find('.relationship_left .relationship_list'),
 				right = div.find('.relationship_right .relationship_list'),
 				paged = parseInt(div.attr('data-paged')),
 				args = div.attr('data-args');
@@ -30,7 +32,7 @@
 					'action'    :'acf_get_widget_results',
 					'paged'     :paged,
 					'args'      :args,
-					'post_type' :post_type,
+					'post_type' :type,
 					'field_name':div.parent().attr('data-field_name'),
 					'field_key' :div.parent().attr('data-field_key')
 				},
@@ -72,6 +74,7 @@
 		else {
 			org_relationship_update_results(div);
 		}
+
 	};
 
 })(jQuery);

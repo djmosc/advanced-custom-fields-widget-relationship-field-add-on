@@ -1,7 +1,6 @@
 #About
 
-This add-on to Advanced Custom Fields allows you to filter widgets on a page-by-page basis.
-
+This plugin is an add-on for Advanced Custom Fields. It allows you to use an ACF "relationship" field to choose widgets at a page level.
 
 
 # Installation
@@ -24,7 +23,7 @@ Assuming you applied the ACF Field Group to the `page` post type, in WP Admin, g
 
 ## Edit your template`s sidebar file(s)
 
-In `sidebar.php`, replace `dynamic_sidebar()` with the new `dynamic_widgets()` method to retrieve widgets:
+In `sidebar.php`, replace default `dynamic_sidebar()` function with the new `dynamic_widgets()` method:
 
     if ( ! acf_Widget::dynamic_widgets( 'Side Bar' ) ) {
 
