@@ -5,7 +5,7 @@ This plugin is an add-on for Advanced Custom Fields. It allows you to use an ACF
 
 # Installation
 
-Copy `advanced-custom-fields-widget-filter-field-add-on` folder to your `plugins` directory. Activate plugin in WP admin.
+Create a `advanced-custom-fields-widget-filter-field-add-on` folder to your `plugins` directory. Unzip and copy files to this directory. Activate plugin in WP admin.
 
 #Usage
 
