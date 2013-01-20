@@ -4,7 +4,7 @@ Donate link:
 Tags: advanced custom fields, widget, widget management, widget filter, widget relationship
 Requires at least: 3.3
 Tested up to: 3.4
-Stable tag:
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,5 +39,12 @@ https://bitbucket.org/djbokka/widget-relationship-field-add-on-for-advanced-cust
 
 2. Usage at the page level
 
+
 == Changelog ==
+
+= 1.0.1 =
+* Changed javascript functions to account for ACF version 3.5.8 upgrade. Still backward compatible.
+
+= 1.0 =
+* Initial Commit.
 

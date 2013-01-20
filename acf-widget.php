@@ -141,10 +141,19 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 			?>
 
         <!-- moves js inline because ACF chokes when loading additional scripts -->
-        <script type="text/javascript">
-            (function(a){var b=acf.relationship_update_results;acf.relationship_update_results=function(c){var d=c.attr("data-post_type");if("widget_relationship_field"==d){c.addClass("loading");var e=c.find(".relationship_left .relationship_list"),g=(c.find(".relationship_right .relationship_list"),parseInt(c.attr("data-paged"))),h=c.attr("data-args");a.ajax({url:ajaxurl,type:"post",dataType:"html",data:{action:"acf_get_widget_results",paged:g,args:h,post_type:d,field_name:c.parent().attr("data-field_name"),field_key:c.parent().attr("data-field_key")},success:function(b){if(c.removeClass("no-results").removeClass("loading"),1==g&&e.find("li:not(.load-more)").remove(),!b)return c.addClass("no-results"),void 0;e.find(".load-more").before(b);var d=a("<ul>"+b+"</ul>");10>d.find("li").length&&c.addClass("no-results"),acf.relationship_hide_results(c)}})}else b(c)}})(jQuery);
-        </script>
-        <!-- /script -->
+		<?php if($this->parent->version >= '3.5.8') { ?>
+			<!-- ACF 3.5.8 compatible -->
+			<script type="text/javascript">
+                (function(a){var b=acf.fields.relationship.update_results;acf.fields.relationship.update_results=function(c){var d=c.attr("data-post_type");if("widget_relationship_field"==d){c.addClass("loading");var e=c.find(".relationship_left .relationship_list"),g=(c.find(".relationship_right .relationship_list"),parseInt(c.attr("data-paged"))),h=c.attr("data-args");a.ajax({url:ajaxurl,type:"post",dataType:"html",data:{action:"acf_get_widget_results",paged:g,args:h,post_type:d,field_name:c.parent().attr("data-field_name"),field_key:c.parent().attr("data-field_key")},success:function(b){if(c.removeClass("no-results").removeClass("loading"),1==g&&e.find("li:not(.load-more)").remove(),!b)return c.addClass("no-results"),void 0;e.find(".load-more").before(b);var d=a("<ul>"+b+"</ul>");10>d.find("li").length&&c.addClass("no-results"),acf.fields.relationship.hide_results(c)}})}else b(c)}})(jQuery);
+			</script>
+            <!-- /script -->
+		<?php } else { ?>
+			<!-- ACF 3.5.7 compatible -->
+			<script type="text/javascript">
+				(function(a){var b=acf.relationship_update_results;acf.relationship_update_results=function(c){var d=c.attr("data-post_type");if("widget_relationship_field"==d){c.addClass("loading");var e=c.find(".relationship_left .relationship_list"),g=(c.find(".relationship_right .relationship_list"),parseInt(c.attr("data-paged"))),h=c.attr("data-args");a.ajax({url:ajaxurl,type:"post",dataType:"html",data:{action:"acf_get_widget_results",paged:g,args:h,post_type:d,field_name:c.parent().attr("data-field_name"),field_key:c.parent().attr("data-field_key")},success:function(b){if(c.removeClass("no-results").removeClass("loading"),1==g&&e.find("li:not(.load-more)").remove(),!b)return c.addClass("no-results"),void 0;e.find(".load-more").before(b);var d=a("<ul>"+b+"</ul>");10>d.find("li").length&&c.addClass("no-results"),acf.relationship_hide_results(c)}})}else b(c)}})(jQuery);
+			</script>
+			<!-- /script -->
+		<?php } ?>
 
         <div class="acf_relationship" data-post_type="widget_relationship_field" data-args="<?php echo $args; ?>" data-paged="1">
 
@@ -331,7 +340,8 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 			//make sure we don't include it on all admin pages
 			if ( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) ) {
-				wp_enqueue_script( 'acf-widget-relationship-script', $this->dir . 'acf-widget.js', array( 'jquery', 'acf-input-actions' ) );
+				//load widget field script
+//				wp_enqueue_script( 'acf-widget-relationship-script', $this->dir . 'acf-widget-3.5.7.js', array( 'jquery', 'acf-input-actions' ) );
 			}
 
 		}
