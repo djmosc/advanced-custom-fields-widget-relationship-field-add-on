@@ -1,9 +1,8 @@
 === Advanced Custom Fields - Widget Relationship Field add-on ===
 Contributors: djbokka
-Donate link:
 Tags: advanced custom fields, widget, widget management, widget filter, widget relationship
 Requires at least: 3.3
-Tested up to: 3.4
+Tested up to: 3.5.0
 Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -15,6 +14,14 @@ This plugin is an add-on for Advanced Custom Fields. It allows you to use an ACF
 This plugin is an add-on for Advanced Custom Fields. It allows you to use an ACF "relationship" field to choose widgets at a page level.
 
 Inherit widgets from parent post or menu items. Drag and drop to change widget display order.
+
+= Documentation =
+https://bitbucket.org/djbokka/widget-relationship-field-add-on-for-advanced-custom-fields
+
+= Bug Submission and Support =
+https://bitbucket.org/djbokka/widget-relationship-field-add-on-for-advanced-custom-fields
+
+
 
 == Installation ==
 
@@ -28,9 +35,11 @@ Inherit widgets from parent post or menu items. Drag and drop to change widget d
 
 }`
 
-== Frequently asked questions ==
 
+
+== Frequently asked questions ==            
 https://bitbucket.org/djbokka/widget-relationship-field-add-on-for-advanced-custom-fields
+
 
 
 == Screenshots ==
@@ -38,6 +47,7 @@ https://bitbucket.org/djbokka/widget-relationship-field-add-on-for-advanced-cust
 1. Configuration on ACF settings
 
 2. Usage at the page level
+
 
 
 == Changelog ==
