@@ -331,7 +331,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 			//make sure we don't include it on all admin pages
 			if ( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) ) {
-				wp_enqueue_script( 'acf-widget-relationship-script', $this->dir . 'acf-widget.js', array( 'jquery', 'acf-input-actions' ) );
+				wp_enqueue_script( 'acf-widget-relationship-script', $this->dir . 'acf-widget-3.5.7.js', array( 'jquery', 'acf-input-actions' ) );
 			}
 
 		}
