@@ -52,9 +52,6 @@ https://bitbucket.org/djbokka/widget-relationship-field-add-on-for-advanced-cust
 
 == Changelog ==
 
-= 1.0.1 =
-* Changed javascript functions to account for ACF version 3.5.8 upgrade. Still backward compatible.
-
 = 1.0 =
 * Initial Commit.
 
