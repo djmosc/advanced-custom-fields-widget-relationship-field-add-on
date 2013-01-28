@@ -3,7 +3,7 @@
 Plugin Name: Advanced Custom Fields - Widget Relationship Field add-on
 Plugin URI: https://bitbucket.org/djbokka/widget-relationship-field-add-on-for-advanced-custom-fields
 Description: This plugin is an add-on for Advanced Custom Fields. It allows you to use a "relationship" field to select widgets at a page level.
-Version: 1.0.1
+Version: 1.0.2
 Author: Dallas Johnson
 License: GPL3
 */
@@ -95,7 +95,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 			// load the widget list
 			$paging       = array_chunk( $this->get_widgets( $options ), $options['posts_per_page'] );
-			$current_page = $paging[$options['paged']];
+			$current_page = (array) $paging[$options['paged']];
 
 			$output = '';
 
