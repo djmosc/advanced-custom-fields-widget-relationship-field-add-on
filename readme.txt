@@ -3,7 +3,7 @@ Contributors: djbokka
 Tags: advanced custom fields, widget, widget management, widget filter, widget relationship
 Requires at least: 3.3
 Tested up to: 3.5.0
-Stable tag: 1.0.11
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,7 +57,7 @@ If this plugin helps you, please give it a good rating. If you have any problems
 
 == Changelog ==
 
-= 1.0.11 = 
+= 1.0.2 =
 * Fixed paging bug (thanks for Dylan Kuhn for pointing it out and providing the solution).
 
 = 1.0.1 =
