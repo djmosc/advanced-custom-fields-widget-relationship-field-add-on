@@ -21,6 +21,9 @@ https://bitbucket.org/djbokka/widget-relationship-field-add-on-for-advanced-cust
 = Bug Submission and Support =
 https://bitbucket.org/djbokka/widget-relationship-field-add-on-for-advanced-custom-fields
 
+= Rate this plugin =
+
+If this plugin helps you, please give it a good rating. If you have any problems, please ask me. I'm happy to help.
 
 
 == Installation ==
@@ -40,11 +43,6 @@ https://bitbucket.org/djbokka/widget-relationship-field-add-on-for-advanced-cust
 == Frequently asked questions ==
 
 https://bitbucket.org/djbokka/widget-relationship-field-add-on-for-advanced-custom-fields
-
-
-== Rate this plugin ==
-
-If this plugin helps you, please give it a good rating. If you have any problems, please ask me. I'm happy to help.
 
 
 == Screenshots ==
