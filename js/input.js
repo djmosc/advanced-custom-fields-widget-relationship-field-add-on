@@ -1,10 +1,6 @@
 (function ($) {
 
-	//////////////////////////////////////////////////////////////////////
-	// This is for reference only, moved inline so ACF doesn't choke
-	//////////////////////////////////////////////////////////////////////
-
-	//Assigning proxy fucnc
+	//Assigning proxy function
 	var org_relationship_update_results = acf.fields.relationship.update_results;
 
 	acf.fields.relationship.update_results = function (div) {
@@ -25,18 +21,19 @@
 
 			// get results
 			$.ajax({
-				url     :ajaxurl,
-				type    :'post',
-				dataType:'html',
-				data    :{
-					'action'    :'acf_get_widget_results',
-					'paged'     :paged,
-					'args'      :args,
-					'post_type' :type,
-					'field_name':div.parent().attr('data-field_name'),
-					'field_key' :div.parent().attr('data-field_key')
+				url     : ajaxurl,
+				type    : 'post',
+				dataType: 'html',
+				data    : {
+					'action'    : 'acf_Widget/get_widget_list',
+					'paged'     : paged,
+					'args'      : args,
+					'post_type' : type,
+					'field_name': div.parent().attr('data-field_name'),
+					'field_key' : div.parent().attr('data-field_key'),
+					'nonce'     : acf.nonce
 				},
-				success :function (html) {
+				success : function (html) {
 
 					div.removeClass('no-results').removeClass('loading');
 

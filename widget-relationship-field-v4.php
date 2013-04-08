@@ -1,39 +1,13 @@
 <?php
-/*
-Plugin Name: Advanced Custom Fields - Widget Relationship Field add-on
-Plugin URI: https://bitbucket.org/djbokka/widget-relationship-field-add-on-for-advanced-custom-fields
-Description: This plugin is an add-on for Advanced Custom Fields. It allows you to use a "relationship" field to select widgets at a page level.
-Version: 1.0.2
-Author: Dallas Johnson
-License: GPL3
-*/
+if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
-/*  Copyright 2012 Dallas Johnson  (email : dallasjohnson@gmail.com)
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, version 3, as
-    published by the Free Software Foundation.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
-
-if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
-
-	class acf_Widget extends acf_Relationship {
+	class acf_Widget extends acf_field {
 
 		//create a unique string for inheritance
 		const INHERIT_STRING = '--INHERIT--';
 		const INHERIT_TITLE  = '-------- Inherit From Parent --------';
 
-		//variable for loading files
-		private $dir;
+		var $settings, $defaults;
 
 		/*--------------------------------------------------------------------------------------
 		*
@@ -42,20 +16,28 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		*	@author Dallas Johnson
 		*
 		*-------------------------------------------------------------------------------------*/
-		public function __construct( $parent ) {
+		public function __construct() {
 
-			//set paths
-			$this->dir = trailingslashit( plugins_url( '', __FILE__ ) );
-
-			parent::__construct( $parent );
-
+			//set vars
 			$this->name  = 'widget_field';
-			$this->title = __( "Widget Relationship", 'acf' );
+			$this->label = 'Widget Filter';
+			$this->category = __("Relational",'acf'); // Basic, Content, Choice, etc
+			$this->defaults = array(
+				'sidebar'       => '',
+				'inherit_from'  => '',
+				'menu_location' => ''
+			);
+
+			parent::__construct(null);
+
+			$this->settings = array(
+				'path' => apply_filters('acf/helpers/get_path', __FILE__),
+				'dir' => apply_filters('acf/helpers/get_dir', __FILE__),
+				'version' => '1.1'
+			);
 
 			// actions
-			add_action( 'wp_ajax_acf_get_widget_results', array( &$this, 'acf_get_widget_results' ) );
-//			add_action( 'admin_print_scripts', array( &$this, 'admin_print_scripts' ), 12, 0 );  //moved to inline script because ACF chokes if you load additional scripts
-			add_action( 'admin_print_styles', array( &$this, 'admin_print_styles' ), 12, 0 );
+			add_action( 'wp_ajax_acf_Widget/get_widget_list', array( &$this, 'get_widget_list' ) );
 
 		}
 
@@ -68,7 +50,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		*   @description: Generates HTML for Left column relationship results
 		*
 		*-------------------------------------------------------------------------------------*/
-		public function acf_get_widget_results() {
+		public function get_widget_list() {
 
 			// vars
 			$options = array(
@@ -76,22 +58,18 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 				'inherit_from'   => '',
 				'menu_location'  => '',
 				'posts_per_page' => 10,
-				'paged'          => 0
+				'paged'          => 0,
+				'nonce'          => ''
 			);
 
-			$ajax = isset( $_POST['action'] ) ? true : false;
+			//we're using our own 'args' variable instead of the built-in data attributes
+			$options          = array_merge( $options, json_decode( stripslashes( $_POST['args'] ), true ) );
+			$options['nonce'] = $_POST['nonce'];
+			$options['paged'] = $_POST['paged'] - 1;
 
-			// override options with posted values
-			if ( $ajax ) {
-
-				//we're using our own 'args' variable instead of the built-in data attributes
-				$options = array_merge( $options, json_decode( stripslashes( $_POST['args'] ), true ) );
-
-				//set the paged data-attribute (only default attribute we're keeping)
-				if ( array_key_exists( 'paged', $_POST ) )
-					$options['paged'] = $_POST['paged'] - 1;
-
-			}
+			//validate
+			if ( ! wp_verify_nonce( $options['nonce'], 'acf_nonce' ) )
+				die();
 
 			// load the widget list
 			$paging       = array_chunk( $this->get_widgets( $options ), $options['posts_per_page'] );
@@ -105,31 +83,21 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 			echo $output;
 
-			// die?
-			if ( $ajax ) {
-				die();
-			}
-
+			die();
 		}
 
 
 		/*--------------------------------------------------------------------------------------
-		 *
-		 *	create_field
-		 *
-		 *	@author Dallas Johnson
-		 *
-		 *-------------------------------------------------------------------------------------*/
+		*
+		*	create_field
+		*
+		*	@author Dallas Johnson
+		*
+		*-------------------------------------------------------------------------------------*/
 		public function create_field( $field ) {
 
 			// vars
-			$defaults = array(
-				'sidebar'       => '',
-				'inherit_from'  => '',
-				'menu_location' => ''
-			);
-
-			$field = array_merge( $defaults, $field );
+			$field = array_merge( $this->defaults, $field );
 
 			$args = array(
 				'sidebar'       => $field['sidebar'],
@@ -139,69 +107,69 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 			$args = htmlspecialchars( json_encode( $args ), ENT_QUOTES, 'UTF-8' );
 			?>
+			<div class="acf_relationship" data-post_type="widget_relationship_field" data-args="<?php echo $args; ?>" data-paged="1">
 
-        <!-- moves js inline because ACF chokes when loading additional scripts -->
-		<?php if($this->parent->version >= '3.5.8') { ?>
-			<!-- ACF 3.5.8 compatible -->
-			<script type="text/javascript">
-                (function(a){var b=acf.fields.relationship.update_results;acf.fields.relationship.update_results=function(c){var d=c.attr("data-post_type");if("widget_relationship_field"==d){c.addClass("loading");var e=c.find(".relationship_left .relationship_list"),g=(c.find(".relationship_right .relationship_list"),parseInt(c.attr("data-paged"))),h=c.attr("data-args");a.ajax({url:ajaxurl,type:"post",dataType:"html",data:{action:"acf_get_widget_results",paged:g,args:h,post_type:d,field_name:c.parent().attr("data-field_name"),field_key:c.parent().attr("data-field_key")},success:function(b){if(c.removeClass("no-results").removeClass("loading"),1==g&&e.find("li:not(.load-more)").remove(),!b)return c.addClass("no-results"),void 0;e.find(".load-more").before(b);var d=a("<ul>"+b+"</ul>");10>d.find("li").length&&c.addClass("no-results"),acf.fields.relationship.hide_results(c)}})}else b(c)}})(jQuery);
-			</script>
-            <!-- /script -->
-		<?php } else { ?>
-			<!-- ACF 3.5.7 compatible -->
-			<script type="text/javascript">
-				(function(a){var b=acf.relationship_update_results;acf.relationship_update_results=function(c){var d=c.attr("data-post_type");if("widget_relationship_field"==d){c.addClass("loading");var e=c.find(".relationship_left .relationship_list"),g=(c.find(".relationship_right .relationship_list"),parseInt(c.attr("data-paged"))),h=c.attr("data-args");a.ajax({url:ajaxurl,type:"post",dataType:"html",data:{action:"acf_get_widget_results",paged:g,args:h,post_type:d,field_name:c.parent().attr("data-field_name"),field_key:c.parent().attr("data-field_key")},success:function(b){if(c.removeClass("no-results").removeClass("loading"),1==g&&e.find("li:not(.load-more)").remove(),!b)return c.addClass("no-results"),void 0;e.find(".load-more").before(b);var d=a("<ul>"+b+"</ul>");10>d.find("li").length&&c.addClass("no-results"),acf.relationship_hide_results(c)}})}else b(c)}})(jQuery);
-			</script>
-			<!-- /script -->
-		<?php } ?>
+				<!-- Hidden Blank default value -->
+				<input type="hidden" name="<?php echo $field['name']; ?>" value="" />
 
-        <div class="acf_relationship" data-post_type="widget_relationship_field" data-args="<?php echo $args; ?>" data-paged="1">
+				<!-- Template for value -->
+				<script type="text/html" class="tmpl-li">
+					<li>
+						<a href="#" data-post_id="{post_id}">{title}<span class="acf-button-remove"></span></a>
+						<input type="hidden" name="<?php echo $field['name']; ?>[]" value="{post_id}" />
+					</li>
+				</script>
+				<!-- / Template for value -->
 
-            <!-- Hidden Blank default value -->
-            <input type="hidden" name="<?php echo $field['name']; ?>" value="" />
+				<!-- Left List -->
+				<div class="relationship_left">
+					<ul class="bl relationship_list">
+						<li class="load-more">
+							<div class="acf-loading"></div>
+						</li>
+					</ul>
+				</div>
+				<!-- /Left List -->
 
-            <!-- Template for value -->
-            <script type="text/html" class="tmpl-li">
-                <li>
-                    <a href="#" data-post_id="{post_id}">{title}<span class="acf-button-remove"></span></a>
-                    <input type="hidden" name="<?php echo $field['name']; ?>[]" value="{post_id}" />
-                </li>
-            </script>
-            <!-- / Template for value -->
+				<!-- Right List -->
+				<div class="relationship_right">
+					<ul class="bl relationship_list">
+						<?php
+						if ( $field['value'] ) {
 
-            <!-- Left List -->
-            <div class="relationship_left">
-                <ul class="bl relationship_list">
-                    <li class="load-more">
-                        <div class="acf-loading"></div>
-                    </li>
-                </ul>
-            </div>
-            <!-- /Left List -->
+							foreach ( $field['value'] as $widget_id ) {
 
-            <!-- Right List -->
-            <div class="relationship_right">
-                <ul class="bl relationship_list">
-					<?php
-					if ( $field['value'] ) {
+								$post = $this->get_widget_object( $widget_id );
 
-						foreach ( $field['value'] as $widget_id ) {
+								echo '<li><a href="javascript:;" class="" data-post_id="' . $post->ID . '"><span class="relationship-item-info">' . $post->type . '</span>' . $post->title . '<span class="acf-button-remove"></span></a><input type="hidden" name="' . $field['name'] . '[]" value="' . $post->ID . '" /></li>';
 
-							$post = $this->get_widget_object( $widget_id );
-
-							echo '<li><a href="javascript:;" class="" data-post_id="' . $post->ID . '"><span class="relationship-item-info">' . $post->type . '</span>' . $post->title . '<span class="acf-button-remove"></span></a><input type="hidden" name="' . $field['name'] . '[]" value="' . $post->ID . '" /></li>';
+							}
 
 						}
+						?>
+					</ul>
+				</div>
+				<!-- / Right List -->
 
-					}
-					?>
-                </ul>
-            </div>
-            <!-- / Right List -->
-
-        </div>
+			</div>
 		<?php
 
+		}
+
+
+		/*--------------------------------------------------------------------------------------
+		*
+		*	field_group_admin_enqueue_scripts
+		*
+		*	@author Dallas Johnson
+		*
+		*-------------------------------------------------------------------------------------*/
+		function input_admin_enqueue_scripts(){
+			wp_register_script('acf-input-widget-relationship-field', $this->settings['dir'] . 'js/input.js', array('acf-input'));
+			wp_register_style('acf-input-widget-relationship-field', $this->settings['dir'] . 'css/input.css', array('acf-input'));
+
+			wp_enqueue_script(array('acf-input-widget-relationship-field'));
+			wp_enqueue_style(array('acf-input-widget-relationship-field'));
 		}
 
 
@@ -212,173 +180,138 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 		*	@author Dallas Johnson
 		*
 		*-------------------------------------------------------------------------------------*/
-		public function create_options( $key, $field ) {
+		public function create_options( $field ) {
 
 			// vars
-			$defaults = array(
-				'sidebar'            => '',
-				'inherit_from'       => '',
-				'menu_location'      => ''
-			);
+			$field = array_merge( $this->defaults, $field );
+			$key   = $field['name'];
 
-			$field = array_merge( $defaults, $field );
 			?>
-        <tr class="field_option field_option_<?php echo $this->name; ?>">
-            <td class="label">
-                <label for="">Sidebar</label>
-            </td>
-            <td>
-				<?php
-				global $wp_registered_sidebars;
-				$sidebars = array();
+			<tr class="field_option field_option_<?php echo $this->name; ?>">
+				<td class="label">
+					<label for="">Sidebar</label>
+				</td>
+				<td>
+					<?php
+					global $wp_registered_sidebars;
+					$sidebars = array();
 
-				if ( ! empty( $wp_registered_sidebars ) ) {
-					foreach ( (array) $wp_registered_sidebars as $sidebar ) {
-						if ( ! is_active_sidebar( $sidebar['id'] ) )
-							continue;
+					if ( ! empty( $wp_registered_sidebars ) ) {
+						foreach ( (array) $wp_registered_sidebars as $sidebar ) {
+							if ( ! is_active_sidebar( $sidebar['id'] ) )
+								continue;
 
-						$sidebars[$sidebar['id']] = $sidebar['name'];
-					}
-				}
-
-				$this->parent->create_field( array(
-					'type'         => 'select',
-					'name'         => 'fields[' . $key . '][sidebar]',
-					'value'        => $field['sidebar'],
-					'choices'      => $sidebars,
-					'multiple'     => '0',
-				) );
-
-				?>
-            </td>
-        </tr>
-        <tr class="field_option field_option_<?php echo $this->name; ?>">
-            <td class="label">
-                <label>Inherit From</label>
-            </td>
-            <td>
-				<?php
-				$options = array(
-					''          => 'None',
-					'page'      => 'Page Structure',
-					'menu'      => 'Menu Structure'
-				);
-
-				$this->parent->create_field( array(
-					'type'      => 'select',
-					'name'      => 'fields[' . $key . '][inherit_from]',
-					'value'     => $field['inherit_from'],
-					'choices'   => $options
-				) );
-				?>
-            </td>
-        </tr>
-        <tr class="field_option field_option_<?php echo $this->name; ?>">
-            <td class="label">
-                <label>If "Menu" inheritance, select menu location to use</label>
-            </td>
-            <td>
-				<?php
-				//get menu ID for the main location
-				$menus   = get_nav_menu_locations();
-				$options = array( '' => 'None' );
-
-				if ( ! empty( $menus ) ) {
-
-					foreach ( $menus as $menu_key => $menu_value ) {
-						$options[$menu_key] = ucwords( $menu_key );
+							$sidebars[$sidebar['id']] = $sidebar['name'];
+						}
 					}
 
-				}
+					do_action( 'acf/create_field', array(
+						'type'     => 'select',
+						'name'     => 'fields[' . $key . '][sidebar]',
+						'value'    => $field['sidebar'],
+						'choices'  => $sidebars,
+						'multiple' => '0',
+					) );
+					?>
+				</td>
+			</tr>
+			<tr class="field_option field_option_<?php echo $this->name; ?>">
+				<td class="label">
+					<label>Inherit From</label>
+				</td>
+				<td>
+					<?php
+					$options = array(
+						''     => 'None',
+						'page' => 'Page Structure',
+						'menu' => 'Menu Structure'
+					);
 
-				$this->parent->create_field( array(
-					'type'      => 'select',
-					'name'      => 'fields[' . $key . '][menu_location]',
-					'value'     => $field['menu_location'],
-					'choices'   => $options
-				) );
-				?>
-            </td>
-        </tr>
+					do_action( 'acf/create_field', array(
+						'type'     => 'select',
+						'name'     => 'fields[' . $key . '][inherit_from]',
+						'value'    => $field['inherit_from'],
+						'choices'  => $options,
+						'multiple' => '0',
+					) );
+					?>
+				</td>
+			</tr>
+			<tr class="field_option field_option_<?php echo $this->name; ?>">
+				<td class="label">
+					<label>If "Menu" inheritance, select menu location to use</label>
+				</td>
+				<td>
+					<?php
+					//get menu ID for the main location
+					$menus = get_nav_menu_locations();
+					$options = array(
+						'' => 'None'
+					);
+
+					if ( ! empty( $menus ) ) {
+						foreach ( $menus as $menu_key => $menu_value ) {
+							$options[$menu_key] = ucwords( $menu_key );
+						}
+					}
+
+					do_action( 'acf/create_field', array(
+						'type'     => 'select',
+						'name'     => 'fields[' . $key . '][menu_location]',
+						'value'    => $field['menu_location'],
+						'choices'  => $options,
+						'multiple' => '0',
+					) );
+					?>
+				</td>
+			</tr>
 		<?php
 
 		}
 
 
-		/*--------------------------------------------------------------------------------------
+		/*
+		 *	format_value()
 		 *
-		 *	get_value
-		 *	- the Relationship field (parent) method performs additional actions we don't need.
-		 *    We just want to return the value.
+		 *  The Relationship field (parent) method performs additional actions we don't need. We just want to return the value.
 		 *
-		 *	@params
-		 *	- $post_id (int) - the post ID which your value is attached to
-		 *	- $field (array) - the field object.
+		 *	@param $value  - the value which was loaded from the database
+		 *	@param $field  - the field array holding all the field options
 		 *
-		 *	@author Dallas Johnson
+		 *	@return  $value  - the modified value
 		 *
-		 *-------------------------------------------------------------------------------------*/
-		public function get_value( $post_id, $field ) {
-
-			return parent::get_value( $post_id, $field );
-
+		 */
+		public function format_value( $value, $field ) {
+			return $value;
 		}
 
 
-		/*--------------------------------------------------------------------------------------
+		/*
+		 *  format_value_for_api()
 		 *
-		 *	admin_print_scripts / admin_print_styles
-		 *  - include our proxy js function and styles
+		 *  This filter is applied to the $value after it is loaded from the db and before it is passed back to the api functions such as the_field
 		 *
-		 *	@author Dallas Johnson
+		 *  @param $value  - the value which was loaded from the database
+		 *  @param $field  - the field array holding all the field options
 		 *
-		 *-------------------------------------------------------------------------------------*/
-		public function admin_print_scripts() {
-
-			// proxy function for acf.relationship_update_results
-			global $pagenow;
-
-			//make sure we don't include it on all admin pages
-			if ( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) ) {
-				//load widget field script
-//				wp_enqueue_script( 'acf-widget-relationship-script', $this->dir . 'acf-widget-3.5.7.js', array( 'jquery', 'acf-input-actions' ) );
-			}
-
+		 *  @return  $value  - the modified value
+		 *
+		 */
+		public function format_value_for_api( $value, $field ) {
+			return $this->format_value( $value, $field );
 		}
 
 
-		/*--------------------------------------------------------------------------------------
+		/*
+		 *	dynamic_widgets()
 		 *
-		 *	admin_print_styles
-		 *  - include our styles
+		 *  This function is called by sidebar.php and retrieves filtered widget list for page
 		 *
-		 *	@author Dallas Johnson
-		 *
-		 *-------------------------------------------------------------------------------------*/
-		public function admin_print_styles() {
-
-			// styles to account for no search box
-			global $pagenow;
-
-			//make sure we don't include it on all admin pages
-			if ( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) ) {
-				wp_enqueue_style( 'acf-widget-relationship-style', $this->dir . 'acf-widget.css', 'acf-input' );
-			}
-
-		}
-
-
-		/*--------------------------------------------------------------------------------------
-		 *
-		 *	dynamic_widgets
-		 *	- this function is called by sidebar.php and retrieves filtered widget list for page
-		 *
-		 *  @params
-		 *  - $index (string or int) - index of sidebar
+		 *  @param $index - index of sidebar
 		 *
 		 *	@author Dallas Johnson
 		 *
-		 *-------------------------------------------------------------------------------------*/
+		 */
 		public static function dynamic_widgets( $index = 1 ) {
 
 			global $wp_registered_sidebars, $wp_registered_widgets;
@@ -414,11 +347,10 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 			* and remove the widgets that aren't in our list.
 			* everything else in this function is default wp dynamic_sidebar function
 			*---------------------------------------------*/
-			global $acf;
 			$post = get_queried_object();
 
 			//set defaults
-			$acf_field = false;
+			$acf_field    = false;
 			$include_list = array();
 
 			//get acf fields for loop
@@ -430,12 +362,12 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 				foreach ( $acf_fields as $key => $field ):
 
 					//get acf field key
-					$field_key = get_post_meta( $post->ID, '_' . $key, true );
+					$field_key = get_field_reference( $key, $post->ID );
 
 					if ( ! empty( $field_key ) ) {
 
 						//it's an acf field, get the field's acf structure
-						$field = $acf->get_acf_field( $field_key );
+						$field = get_field_object( $field_key, $post->ID );
 
 						//see if it has a "sidebar" option and if it matches our index
 						if ( isset( $field['sidebar'] ) && $field['sidebar'] == $index ) {
@@ -659,7 +591,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 					endswitch;
 
 					//this allows for custom parent options outside of PAGE and MENU
-					$parent_post = apply_filters( 'acf-widget-parent-post', $parent_post, $post );
+					$parent_post = apply_filters( 'acf_Widget/parent-post', $parent_post, $post );
 
 					if ( $parent_post )
 						array_splice( $widgets, $i, 1, self::buildIncludeList( $parent_post, $field ) );
@@ -782,14 +714,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_Relationship' ) ) {
 
 	}
 
-}
+	new acf_Widget();
 
-if ( ! function_exists( 'acf_widget_register_field' ) ) {
-	function acf_widget_register_field() {
-		if ( function_exists( 'register_field' ) ) {
-			register_field( 'acf_Widget', __FILE__ );
-		}
-	}
 }
-add_action( 'init', 'acf_widget_register_field' );
 ?>
