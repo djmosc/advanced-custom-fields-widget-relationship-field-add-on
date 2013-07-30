@@ -365,7 +365,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
 				foreach ( $acf_fields as $key => $field ):
 
-					if( strpos($key, 'options_') !== false ) {
+					if( strpos($key, '_options_') !== false ) {
 						$key = str_replace( '_options_', '', $key );
 
 						if ($key != $requested_field) {
