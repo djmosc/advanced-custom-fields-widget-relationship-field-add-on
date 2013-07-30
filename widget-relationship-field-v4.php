@@ -312,7 +312,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 		 *	@author Dallas Johnson
 		 *
 		 */
-		public static function dynamic_widgets( $index = 1 ) {
+		public static function dynamic_widgets( $index = 1, $post_id = false, $requested_field = false ) {
 
 			global $wp_registered_sidebars, $wp_registered_widgets;
 
@@ -347,27 +347,39 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 			* and remove the widgets that aren't in our list.
 			* everything else in this function is default wp dynamic_sidebar function
 			*---------------------------------------------*/
-			$post = get_queried_object();
+
+			if ( empty($post_id) ) {
+				$post = get_queried_object();
+				$post_id = $post->ID;
+			}
 
 			//set defaults
 			$acf_field    = false;
 			$include_list = array();
 
 			//get acf fields for loop
-			$acf_fields = get_fields( $post->ID );
+			$acf_fields = get_fields( $post_id );
 
 			//loop acf fields to get our field key
 			if ( $acf_fields ) {
 
 				foreach ( $acf_fields as $key => $field ):
 
+					if( strpos($key, 'options_') !== false ) {
+						$key = str_replace( '_options_', '', $key );
+
+						if ($key != $requested_field) {
+							$key = '';
+						}
+					}
+
 					//get acf field key
-					$field_key = get_field_reference( $key, $post->ID );
+					$field_key = get_field_reference( $key, $post_id );
 
 					if ( ! empty( $field_key ) ) {
 
 						//it's an acf field, get the field's acf structure
-						$field = get_field_object( $field_key, $post->ID );
+						$field = get_field_object( $field_key, $post_id );
 
 						//see if it has a "sidebar" option and if it matches our index
 						if ( isset( $field['sidebar'] ) && $field['sidebar'] == $index ) {
@@ -386,10 +398,10 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
 				if ( $acf_field ) {
 
-					if ( get_field( $acf_field, $post->ID ) ) {
+					if ( get_field( $acf_field, $post_id ) ) {
 
 						//build our include list
-						$include_list = self::buildIncludeList( $post, $field );
+						$include_list = self::buildIncludeList( $post_id, $field );
 
 					}
 
@@ -558,14 +570,16 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 		 *	@author Dallas Johnson
 		 *
 		 *-------------------------------------------------------------------------------------*/
-		public static function buildIncludeList( $post, $field ) {
+		public static function buildIncludeList( $post_id, $field ) {
 
-			$widgets = get_field( $field['name'], $post->ID );
+			$widgets = get_field( $field['name'], $post_id );
 
 			if ( $widgets ) {
 
 				//see if this list inherits
-				if ( isset( $field['inherit_from'] ) && false !== ( $i = array_search( self::INHERIT_STRING, $widgets ) ) ) {
+				if ( isset( $field['inherit_from'] ) && is_numeric( $post_id ) && false !== ( $i = array_search( self::INHERIT_STRING, $widgets ) ) ) {
+
+					$post = get_post( $post_id );
 
 					//it does, see what we're inheriting from
 					switch ( $field['inherit_from'] ):
@@ -594,7 +608,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 					$parent_post = apply_filters( 'acf_Widget/parent-post', $parent_post, $post );
 
 					if ( $parent_post )
-						array_splice( $widgets, $i, 1, self::buildIncludeList( $parent_post, $field ) );
+						array_splice( $widgets, $i, 1, self::buildIncludeList( $parent_post->ID, $field ) );
 
 				}
 
