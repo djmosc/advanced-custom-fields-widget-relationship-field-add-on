@@ -11,7 +11,7 @@ This plugin is an add-on for Advanced Custom Fields. It allows you to use an ACF
 
 == Description ==
 
-IMPORTANT! NOW ONLY COMPATIBLE WITH ACF 4.2 AND ABOVE!
+IMPORTANT! NOW ONLY COMPATIBLE WITH ACF 4.2 AND ABOVE! BACKWARD COMPATIBILITY HAS BEEN REMOVED.
 
 This plugin is an add-on for Advanced Custom Fields. It allows you to use an ACF "relationship" field to choose widgets at a page level.
 
