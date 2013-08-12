@@ -1,4 +1,11 @@
-<?php
+css
+js
+input.js
+acf-widget-relationship-field.php
+README.md
+readme.txt
+widget-relationship-field-v3.php
+widget-relationship-field-v4.php<?php
 if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
 	class acf_Widget extends acf_field {
