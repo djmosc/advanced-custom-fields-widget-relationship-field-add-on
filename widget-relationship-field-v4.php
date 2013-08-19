@@ -33,14 +33,14 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 			$this->settings = array(
 				'path' => apply_filters('acf/helpers/get_path', __FILE__),
 				'dir' => apply_filters('acf/helpers/get_dir', __FILE__),
-				'version' => '1.1'
+				'version' => '1.2'
 			);
 
 			// actions
 			add_action( 'wp_ajax_acf_Widget/get_widget_list', array( &$this, 'get_widget_list' ) );
+			add_action( 'wp_ajax_nopriv_acf_Widget/get_widget_list', array( &$this, 'get_widget_list' ) );
 
 		}
-
 
 		/*--------------------------------------------------------------------------------------
 		*
@@ -53,19 +53,22 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 		public function get_widget_list() {
 
 			// vars
+			$r = array(
+				'next_page_exists' => 1,
+				'html' => ''
+			);
+
+			//options
 			$options = array(
 				'sidebar'        => '',
 				'inherit_from'   => '',
 				'menu_location'  => '',
 				'posts_per_page' => 10,
-				'paged'          => 0,
+				'paged'          => 1,
 				'nonce'          => ''
 			);
 
-			//we're using our own 'args' variable instead of the built-in data attributes
-			$options          = array_merge( $options, json_decode( stripslashes( $_POST['args'] ), true ) );
-			$options['nonce'] = $_POST['nonce'];
-			$options['paged'] = $_POST['paged'] - 1;
+			$options          = array_merge( $options, $_POST );
 
 			//validate
 			if ( ! wp_verify_nonce( $options['nonce'], 'acf_nonce' ) )
@@ -73,19 +76,19 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
 			// load the widget list
 			$paging       = array_chunk( $this->get_widgets( $options ), $options['posts_per_page'] );
-			$current_page = (array) $paging[$options['paged']];
-
-			$output = '';
+			$current_page = (array) $paging[$options['paged']-1];
 
 			foreach ( $current_page as $post ) {
-				$output .= '<li><a href="javascript:;" data-post_id="' . $post->ID . '"><span class="relationship-item-info">' . $post->type . '</span>' . $post->title . '<span class="acf-button-add"></span></a></li>';
+				$r['html'] .= '<li><a href="javascript:;" data-post_id="' . $post->ID . '"><span class="relationship-item-info">' . $post->type . '</span>' . $post->title . '<span class="acf-button-add"></span></a></li>';
 			}
 
-			echo $output;
+			if((int)$options['paged'] >= count($paging))
+				$r['next_page_exists'] = 0;
+
+			echo json_encode($r);
 
 			die();
 		}
-
 
 		/*--------------------------------------------------------------------------------------
 		*
@@ -99,27 +102,19 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 			// vars
 			$field = array_merge( $this->defaults, $field );
 
-			$args = array(
+			$attributes = array(
 				'sidebar'       => $field['sidebar'],
 				'inherit_from'  => $field['inherit_from'],
-				'menu_location' => $field['menu_location']
+				'menu_location' => $field['menu_location'],
+				'paged' => 1,
+				'post_type' => 'widget_relationship_field',
+				'field_key' => $field['key']
 			);
-
-			$args = htmlspecialchars( json_encode( $args ), ENT_QUOTES, 'UTF-8' );
 			?>
-			<div class="acf_relationship" data-post_type="widget_relationship_field" data-args="<?php echo $args; ?>" data-paged="1">
+			<div class="acf_relationship" <?php foreach($attributes as $k => $v): ?> data-<?php echo $k; ?>="<?php echo $v; ?>"<?php endforeach; ?>>
 
 				<!-- Hidden Blank default value -->
 				<input type="hidden" name="<?php echo $field['name']; ?>" value="" />
-
-				<!-- Template for value -->
-				<script type="text/html" class="tmpl-li">
-					<li>
-						<a href="#" data-post_id="{post_id}">{title}<span class="acf-button-remove"></span></a>
-						<input type="hidden" name="<?php echo $field['name']; ?>[]" value="{post_id}" />
-					</li>
-				</script>
-				<!-- / Template for value -->
 
 				<!-- Left List -->
 				<div class="relationship_left">
@@ -155,23 +150,6 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 		<?php
 
 		}
-
-
-		/*--------------------------------------------------------------------------------------
-		*
-		*	field_group_admin_enqueue_scripts
-		*
-		*	@author Dallas Johnson
-		*
-		*-------------------------------------------------------------------------------------*/
-		function input_admin_enqueue_scripts(){
-			wp_register_script('acf-input-widget-relationship-field', $this->settings['dir'] . 'js/input.js', array('acf-input'));
-			wp_register_style('acf-input-widget-relationship-field', $this->settings['dir'] . 'css/input.css', array('acf-input'));
-
-			wp_enqueue_script(array('acf-input-widget-relationship-field'));
-			wp_enqueue_style(array('acf-input-widget-relationship-field'));
-		}
-
 
 		/*--------------------------------------------------------------------------------------
 		*
@@ -266,41 +244,22 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 				</td>
 			</tr>
 		<?php
-
 		}
 
+		/*--------------------------------------------------------------------------------------
+		*
+		*	field_group_admin_enqueue_scripts
+		*
+		*	@author Dallas Johnson
+		*
+		*-------------------------------------------------------------------------------------*/
+		function input_admin_enqueue_scripts(){
+			wp_register_script('acf-input-widget-relationship-field', $this->settings['dir'] . 'js/input.js', array('acf-input'));
+			wp_register_style('acf-input-widget-relationship-field', $this->settings['dir'] . 'css/input.css', array('acf-input'));
 
-		/*
-		 *	format_value()
-		 *
-		 *  The Relationship field (parent) method performs additional actions we don't need. We just want to return the value.
-		 *
-		 *	@param $value  - the value which was loaded from the database
-		 *	@param $field  - the field array holding all the field options
-		 *
-		 *	@return  $value  - the modified value
-		 *
-		 */
-		public function format_value( $value, $field ) {
-			return $value;
+			wp_enqueue_script(array('acf-input-widget-relationship-field'));
+			wp_enqueue_style(array('acf-input-widget-relationship-field'));
 		}
-
-
-		/*
-		 *  format_value_for_api()
-		 *
-		 *  This filter is applied to the $value after it is loaded from the db and before it is passed back to the api functions such as the_field
-		 *
-		 *  @param $value  - the value which was loaded from the database
-		 *  @param $field  - the field array holding all the field options
-		 *
-		 *  @return  $value  - the modified value
-		 *
-		 */
-		public function format_value_for_api( $value, $field ) {
-			return $this->format_value( $value, $field );
-		}
-
 
 		/*
 		 *	dynamic_widgets()
@@ -312,7 +271,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 		 *	@author Dallas Johnson
 		 *
 		 */
-		public static function dynamic_widgets( $index = 1 ) {
+		public static function dynamic_widgets( $index = 1, $post_id = false, $requested_field = false ) {
 
 			global $wp_registered_sidebars, $wp_registered_widgets;
 
@@ -347,27 +306,39 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 			* and remove the widgets that aren't in our list.
 			* everything else in this function is default wp dynamic_sidebar function
 			*---------------------------------------------*/
-			$post = get_queried_object();
+
+			if ( empty($post_id) ) {
+				$post = get_queried_object();
+				$post_id = $post->ID;
+			}
 
 			//set defaults
 			$acf_field    = false;
 			$include_list = array();
 
 			//get acf fields for loop
-			$acf_fields = get_fields( $post->ID );
+			$acf_fields = get_fields( $post_id );
 
 			//loop acf fields to get our field key
 			if ( $acf_fields ) {
 
 				foreach ( $acf_fields as $key => $field ):
 
+					if( strpos($key, 'options_') !== false ) {
+						$key = str_replace( '_options_', '', $key );
+
+						if ($key != $requested_field) {
+							$key = '';
+						}
+					}
+
 					//get acf field key
-					$field_key = get_field_reference( $key, $post->ID );
+					$field_key = get_field_reference( $key, $post_id );
 
 					if ( ! empty( $field_key ) ) {
 
 						//it's an acf field, get the field's acf structure
-						$field = get_field_object( $field_key, $post->ID );
+						$field = get_field_object( $field_key, $post_id );
 
 						//see if it has a "sidebar" option and if it matches our index
 						if ( isset( $field['sidebar'] ) && $field['sidebar'] == $index ) {
@@ -386,10 +357,10 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
 				if ( $acf_field ) {
 
-					if ( get_field( $acf_field, $post->ID ) ) {
+					if ( get_field( $acf_field, $post_id ) ) {
 
 						//build our include list
-						$include_list = self::buildIncludeList( $post, $field );
+						$include_list = self::buildIncludeList( $post_id, $field );
 
 					}
 
@@ -440,7 +411,6 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 			return $did_one;
 
 		}
-
 
 		/*--------------------------------------------------------------------------------------
 		 *
@@ -504,7 +474,6 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
 		}
 
-
 		/*--------------------------------------------------------------------------------------
 		*
 		*	get_widget_object
@@ -544,7 +513,6 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 			);
 
 		}
-
 
 		/*--------------------------------------------------------------------------------------
 		 *
@@ -604,7 +572,6 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
 		}
 
-
 		/*--------------------------------------------------------------------------------------
 		 *
 		 *	getMenuParentIDFromPostID
@@ -635,7 +602,6 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
 		}
 
-
 		/*--------------------------------------------------------------------------------------
 		*
 		*	getPostIDFromMenuID
@@ -665,7 +631,6 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 			return false;
 
 		}
-
 
 		/*--------------------------------------------------------------------------------------
 		*
@@ -712,9 +677,38 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
 		}
 
+		/*
+		 *	format_value()
+		 *
+		 *  The Relationship field (parent) method performs additional actions we don't need. We just want to return the value.
+		 *
+		 *	@param $value  - the value which was loaded from the database
+		 *	@param $field  - the field array holding all the field options
+		 *
+		 *	@return  $value  - the modified value
+		 *
+		 */
+		public function format_value( $value, $field ) {
+			return $value;
+		}
+
+		/*
+		 *  format_value_for_api()
+		 *
+		 *  This filter is applied to the $value after it is loaded from the db and before it is passed back to the api functions such as the_field
+		 *
+		 *  @param $value  - the value which was loaded from the database
+		 *  @param $field  - the field array holding all the field options
+		 *
+		 *  @return  $value  - the modified value
+		 *
+		 */
+		public function format_value_for_api( $value, $field ) {
+			return $this->format_value( $value, $field );
+		}
+
 	}
 
 	new acf_Widget();
 
 }
-?>
