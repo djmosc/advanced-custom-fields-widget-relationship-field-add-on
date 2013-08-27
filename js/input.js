@@ -1,17 +1,15 @@
 (function ($) {
 
-	//Assigning proxy function
-	var org_relationship_fetch = acf.fields.relationship.fetch;
+	// create proxy method
+	acf.fields.relationship.default_fetch = acf.fields.relationship.fetch;
 
 	acf.fields.relationship.fetch = function () {
 
-		var _this = this,
-			$el = this.$el;
+//		if it's our widget field, use our custom method (only difference is the 'action' data attribute)
+		if(this.$el.attr('data-post_type') === 'widget_relationship_field' ) {
 
-		var type = $el.attr('data-post_type');
-
-		//if it's our widget field, use our function
-		if (type == 'widget_relationship_field') {
+			var _this = this,
+				$el = this.$el;
 
 			// add loading class, stops scroll loading
 			$el.addClass('loading');
@@ -36,11 +34,16 @@
 
 		}
 
-		//if not, use the default function
+//		if it's not our widget field, use default method
 		else {
-			org_relationship_fetch();
+
+			this.default_fetch();
+
 		}
 
 	};
 
-}) (jQuery);
+})(jQuery);
+
+
+
