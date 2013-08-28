@@ -520,20 +520,22 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 		 *	- this function retrieves all inherited widgets for postID
 		 *
 		 *  @params
-		 *  - $post (object) - post object
+		 *  - $post_id (object) - post id
 		 *  - $field (object) - field object for this acf item
 		 *
 		 *	@author Dallas Johnson
 		 *
 		 *-------------------------------------------------------------------------------------*/
-		public static function buildIncludeList( $post, $field ) {
+		public static function buildIncludeList( $post_id, $field ) {
 
-			$widgets = get_field( $field['name'], $post->ID );
+			$widgets = get_field( $field['name'], $post_id );
 
 			if ( $widgets ) {
 
 				//see if this list inherits
-				if ( isset( $field['inherit_from'] ) && false !== ( $i = array_search( self::INHERIT_STRING, $widgets ) ) ) {
+				if ( isset( $field['inherit_from'] ) && is_numeric($post_id) && false !== ( $i = array_search( self::INHERIT_STRING, $widgets ) ) ) {
+
+					$post = get_post( $post_id );
 
 					//it does, see what we're inheriting from
 					switch ( $field['inherit_from'] ):
@@ -562,7 +564,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 					$parent_post = apply_filters( 'acf_Widget/parent-post', $parent_post, $post );
 
 					if ( $parent_post )
-						array_splice( $widgets, $i, 1, self::buildIncludeList( $parent_post, $field ) );
+						array_splice( $widgets, $i, 1, self::buildIncludeList( $parent_post->ID, $field ) );
 
 				}
 
