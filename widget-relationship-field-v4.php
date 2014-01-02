@@ -341,7 +341,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 						$field = get_field_object( $field_key, $post_id );
 
 						//see if it has a "sidebar" option and if it matches our index
-						if ( isset( $field['sidebar'] ) && $field['sidebar'] == $index ) {
+						if ( isset( $field['sidebar'] ) && $field['sidebar'] == $index && $key == $requested_field ) {
 
 							//this field matches, set $acf_field to this one
 							$acf_field = $key;
