@@ -324,6 +324,9 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
 				foreach ( $acf_fields as $key => $field ):
 
+					new dbug($key);
+					new dbug($requested_field);
+
 					if( strpos($key, 'options_') !== false ) {
 						$key = str_replace( '_options_', '', $key );
 
@@ -340,8 +343,10 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 						//it's an acf field, get the field's acf structure
 						$field = get_field_object( $field_key, $post_id );
 
+						$condition = (false === $requested_field) ? isset( $field['sidebar'] ) && $field['sidebar'] == $index : isset( $field['sidebar'] ) && $field['sidebar'] == $index && $key == $requested_field;
+
 						//see if it has a "sidebar" option and if it matches our index
-						if ( isset( $field['sidebar'] ) && $field['sidebar'] == $index && $key == $requested_field ) {
+						if ( $condition ) {
 
 							//this field matches, set $acf_field to this one
 							$acf_field = $key;
