@@ -3,7 +3,7 @@ Contributors: djbokka
 Tags: advanced custom fields, widget, widget management, widget filter, widget relationship
 Requires at least: 3.3
 Tested up to: 3.6.0
-Stable tag: 1.3.3
+Stable tag: 1.3.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -56,6 +56,9 @@ https://bitbucket.org/djbokka/widget-relationship-field-add-on-for-advanced-cust
 
 
 == Changelog ==
+
+= 1.3.4 =
+* Left a debugging line in. I'm an idiot. Sorry.
 
 = 1.3.3 =
 * Fixed multiple field bug to allow multiple and default format.
