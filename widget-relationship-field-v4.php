@@ -309,6 +309,8 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
 			if ( empty($post_id) ) {
 				$post = get_queried_object();
+				if ( !is_a( $post, 'WP_Post' ) )
+					return false;
 				$post_id = $post->ID;
 			}
 
