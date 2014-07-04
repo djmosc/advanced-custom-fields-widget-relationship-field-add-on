@@ -24,8 +24,18 @@ License: GPL3
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-add_action('acf/register_fields', 'acf_field_widget_relationship_field');
+function include_field_types_widget_relationship_field( $version ) {
+
+    include_once('widget-relationship-field-v5.php');
+
+}
+
+add_action('acf/include_field_types', 'include_field_types_widget_relationship_field');
+
 
 function acf_field_widget_relationship_field(){
 	include_once('widget-relationship-field-v4.php');
 }
+
+
+add_action('acf/register_fields', 'acf_field_widget_relationship_field');

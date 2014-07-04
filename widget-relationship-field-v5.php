@@ -13,60 +13,68 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 		*
 		*	Constructor
 		*
-		*	@author Dallas Johnson
+		*	@author DJ Mosca
 		*
 		*-------------------------------------------------------------------------------------*/
 		public function __construct() {
-
+			
 			//set vars
 			$this->name  = 'widget_field';
-			$this->label = 'Widget Filter';
-			$this->category = __("Relational",'acf'); // Basic, Content, Choice, etc
+			$this->label = 'Widgets';
+			$this->category = 'relational'; // Basic, Content, Choice, etc
 			$this->defaults = array(
 				'sidebar'       => '',
 				'inherit_from'  => '',
 				'menu_location' => ''
 			);
 
-			parent::__construct(null);
-
-			$this->settings = array(
-				'path' => apply_filters('acf/helpers/get_path', __FILE__),
-				'dir' => apply_filters('acf/helpers/get_dir', __FILE__),
-				'version' => '1.2'
+			$this->l10n = array(
+				'max'		=> __("Maximum values reached ( {max} values )",'acf'),
+				'loading'	=> __('Loading','acf'),
+				'empty'		=> __('No matches found','acf'),
+				'tmpl_li'	=> '<li>
+									<input type="hidden" name="<%= name %>[]" value="<%= value %>" />
+									<span data-id="<%= value %>" class="acf-relationship-item">
+										<%= text %>
+										<a href="#" class="acf-icon small dark"><i class="acf-sprite-remove"></i></a>
+									</span>
+								</li>'
 			);
 
 			// actions
-			add_action( 'wp_ajax_acf_Widget/get_widget_list', array( &$this, 'get_widget_list' ) );
-			add_action( 'wp_ajax_nopriv_acf_Widget/get_widget_list', array( &$this, 'get_widget_list' ) );
+			add_action('wp_ajax_acf/fields/widget_field/query',			array($this, 'ajax_query'));
+			add_action('wp_ajax_nopriv_acf/fields/widget_field/query',	array($this, 'ajax_query'));
+
+			parent::__construct(null);
 
 		}
 
 		/*--------------------------------------------------------------------------------------
 		*
-		*	acf_get_widget_results
+		*	ajax_query
 		*
-		*	@author Dallas Johnson
+		*	@author DJ Mosca
 		*   @description: Generates HTML for Left column relationship results
 		*
 		*-------------------------------------------------------------------------------------*/
-		public function get_widget_list() {
+		public function ajax_query() {
 
 			// vars
 			$r = array(
-				'next_page_exists' => 1,
-				'html' => ''
+				// 'next_page_exists' => 1,
+				// 'html' => ''
 			);
 
 			//options
-			$options = array(
+			$options = acf_parse_args( $_GET, array(
 				'sidebar'        => '',
-				'inherit_from'   => '',
-				'menu_location'  => '',
-				'posts_per_page' => 10,
+				's'				=> '',
+				'lang'			=> false,
+				'field_key'		=> '',
 				'paged'          => 1,
-				'nonce'          => ''
-			);
+				'nonce'			=> '',
+				'posts_per_page' => 5
+			));
 
 			$options          = array_merge( $options, $_POST );
 
@@ -79,11 +87,14 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 			$current_page = (array) $paging[$options['paged']-1];
 
 			foreach ( $current_page as $post ) {
-				$r['html'] .= '<li><a href="javascript:;" data-post_id="' . $post->ID . '"><span class="relationship-item-info">' . $post->type . '</span>' . $post->title . '<span class="acf-button-add"></span></a></li>';
+				$r[] = array(
+					'id' => $post->ID,
+					'text' => $post->title
+				);
 			}
 
-			if((int)$options['paged'] >= count($paging))
-				$r['next_page_exists'] = 0;
+			// if((int)$options['paged'] >= count($paging))
+			// 	$r['next_page_exists'] = 0;
 
 			echo json_encode($r);
 
@@ -92,59 +103,64 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
 		/*--------------------------------------------------------------------------------------
 		*
-		*	create_field
+		*	render_field
 		*
-		*	@author Dallas Johnson
+		*	@author DJ Mosca
 		*
 		*-------------------------------------------------------------------------------------*/
-		public function create_field( $field ) {
+		public function render_field( $field ) {
 
 			// vars
 			$field = array_merge( $this->defaults, $field );
 
-			$attributes = array(
-				'sidebar'       => $field['sidebar'],
-				'inherit_from'  => $field['inherit_from'],
-				'menu_location' => $field['menu_location'],
-				'paged' => 1,
-				'post_type' => 'widget_relationship_field',
-				'field_key' => $field['key']
+			$atts = array(
+				'id'			=> $field['id'],
+				'class'			=> "acf-relationship {$field['class']}",
+				'data-sidebar'       => $field['sidebar'],
+				'data-inherit_from'  => $field['inherit_from'],
+				'data-menu_location' => $field['menu_location'],
+				'data-paged' => 1,
+				'data-post_type' => 'widget_relationship_field',
+				'data-field_key' => $field['key']
 			);
 			?>
-			<div class="acf_relationship" <?php foreach($attributes as $k => $v): ?> data-<?php echo $k; ?>="<?php echo $v; ?>"<?php endforeach; ?>>
+			<div <?php acf_esc_attr_e($atts); ?>>
 
 				<!-- Hidden Blank default value -->
-				<input type="hidden" name="<?php echo $field['name']; ?>" value="" />
-
-				<!-- Left List -->
-				<div class="relationship_left">
-					<ul class="bl relationship_list">
-						<li class="load-more">
-							<div class="acf-loading"></div>
-						</li>
-					</ul>
+				<div class="acf-hidden">
+					<input type="hidden" name="<?php echo $field['name']; ?>" value="" />
 				</div>
-				<!-- /Left List -->
 
-				<!-- Right List -->
-				<div class="relationship_right">
-					<ul class="bl relationship_list">
-						<?php
-						if ( $field['value'] ) {
+				<div class="selection acf-cf">
+					<div class="choices">
+						<ul class="acf-bl list">
+							
+						</ul>
+					</div>
+					<div class="values">
+						<ul class="acf-bl list">
+							<?php
+							if ( $field['value'] ) {
 
-							foreach ( $field['value'] as $widget_id ) {
+								foreach ( $field['value'] as $widget_id ) {
 
-								$post = $this->get_widget_object( $widget_id );
-
-								echo '<li><a href="javascript:;" class="" data-post_id="' . $post->ID . '"><span class="relationship-item-info">' . $post->type . '</span>' . $post->title . '<span class="acf-button-remove"></span></a><input type="hidden" name="' . $field['name'] . '[]" value="' . $post->ID . '" /></li>';
-
+									$post = $this->get_widget_object( $widget_id );
+									?>
+									<li>
+										<input type="hidden" name="<?php echo $field['name']; ?>[]" value="<?php echo $post->ID; ?>" />
+										<span data-id="<?php echo $k; ?>" class="acf-relationship-item">
+											<span class="relationship-item-info"><?php echo $post->type; ?></span>
+											<?php echo $post->title; ?>
+											<a href="#" class="acf-icon small dark"><i class="acf-sprite-remove"></i></a>
+										</span>
+									</li>
+									<?php
+								}
 							}
-
-						}
-						?>
-					</ul>
+							?>
+						</ul>
+					</div>
 				</div>
-				<!-- / Right List -->
 
 			</div>
 		<?php
@@ -153,109 +169,93 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 
 		/*--------------------------------------------------------------------------------------
 		*
-		*	create_options
+		*	render_field_settings
 		*
-		*	@author Dallas Johnson
+		*	@author DJ Mosca
 		*
 		*-------------------------------------------------------------------------------------*/
-		public function create_options( $field ) {
+		function render_field_settings( $field ) {
 
 			// vars
 			$field = array_merge( $this->defaults, $field );
 			$key   = $field['name'];
 
-			?>
-			<tr class="field_option field_option_<?php echo $this->name; ?>">
-				<td class="label">
-					<label for="">Sidebar</label>
-				</td>
-				<td>
-					<?php
-					global $wp_registered_sidebars;
-					$sidebars = array();
+	 		global $wp_registered_sidebars;
+			$sidebars = array();
 
-					if ( ! empty( $wp_registered_sidebars ) ) {
-						foreach ( (array) $wp_registered_sidebars as $sidebar ) {
-							if ( ! is_active_sidebar( $sidebar['id'] ) )
-								continue;
+			if ( ! empty( $wp_registered_sidebars ) ) {
+				foreach ( (array) $wp_registered_sidebars as $sidebar ) {
+					if ( ! is_active_sidebar( $sidebar['id'] ) )
+						continue;
 
-							$sidebars[$sidebar['id']] = $sidebar['name'];
-						}
-					}
+					$sidebars[$sidebar['id']] = $sidebar['name'];
+				}
+			}
 
-					do_action( 'acf/create_field', array(
-						'type'     => 'select',
-						'name'     => 'fields[' . $key . '][sidebar]',
-						'value'    => $field['sidebar'],
-						'choices'  => $sidebars,
-						'multiple' => '0',
-					) );
-					?>
-				</td>
-			</tr>
-			<tr class="field_option field_option_<?php echo $this->name; ?>">
-				<td class="label">
-					<label>Inherit From</label>
-				</td>
-				<td>
-					<?php
-					$options = array(
-						''     => 'None',
-						'page' => 'Page Structure',
-						'menu' => 'Menu Structure'
-					);
 
-					do_action( 'acf/create_field', array(
-						'type'     => 'select',
-						'name'     => 'fields[' . $key . '][inherit_from]',
-						'value'    => $field['inherit_from'],
-						'choices'  => $options,
-						'multiple' => '0',
-					) );
-					?>
-				</td>
-			</tr>
-			<tr class="field_option field_option_<?php echo $this->name; ?>">
-				<td class="label">
-					<label>If "Menu" inheritance, select menu location to use</label>
-				</td>
-				<td>
-					<?php
-					//get menu ID for the main location
-					$menus = get_nav_menu_locations();
-					$options = array(
-						'' => 'None'
-					);
+			acf_render_field_setting( $field, array(
+				'label'			=> __('Sidebar','acf-widget'),
+				'instructions'	=> '',
+				'type'			=> 'number',
+				'name'			=> 'sidebar',
+				'type'			=> 'select',
+				'choices'		=> $sidebars,
+				'ui'			=> 1,
+				'multiple'		=> 0,
+				'allow_null'	=> 0
+			));
 
-					if ( ! empty( $menus ) ) {
-						foreach ( $menus as $menu_key => $menu_value ) {
-							$options[$menu_key] = ucwords( $menu_key );
-						}
-					}
 
-					do_action( 'acf/create_field', array(
-						'type'     => 'select',
-						'name'     => 'fields[' . $key . '][menu_location]',
-						'value'    => $field['menu_location'],
-						'choices'  => $options,
-						'multiple' => '0',
-					) );
-					?>
-				</td>
-			</tr>
-		<?php
+			acf_render_field_setting( $field, array(
+				'label'			=> __('Inherit From','acf-widget'),
+				'type'     => 'select',
+				'name'     => 'inherit_from',
+				'choices'  => array(
+					''     => 'None',
+					'page' => 'Page Structure',
+					'menu' => 'Menu Structure'
+				),
+				'ui'			=> 1,
+				'multiple'		=> 0,
+				'allow_null'	=> 0
+			) );
+
+			$menus = get_nav_menu_locations();
+			$options = array(
+				'' => 'None'
+			);
+
+			if ( ! empty( $menus ) ) {
+				foreach ( $menus as $menu_key => $menu_value ) {
+					$options[$menu_key] = ucwords( $menu_key );
+				}
+			}
+
+			acf_render_field_setting( $field, array(
+				'label'			=> __('Menu location','acf-widget'),
+				'instructions'	=> __('If "Menu" inheritance, select menu location to use','acf-widget'),
+				'type'     		=> 'select',
+				'name'     		=> 'menu_location',
+				'choices'  		=> $options,
+				'ui'			=> 1,
+				'multiple'		=> 0,
+				'allow_null'	=> 0
+			) );
+
 		}
 
 		/*--------------------------------------------------------------------------------------
 		*
 		*	field_group_admin_enqueue_scripts
 		*
-		*	@author Dallas Johnson
+		*	@author DJ Mosca
 		*
 		*-------------------------------------------------------------------------------------*/
 		function input_admin_enqueue_scripts(){
-			wp_register_script('acf-input-widget-relationship-field', $this->settings['dir'] . 'js/input.js', array('acf-input'));
-			wp_register_style('acf-input-widget-relationship-field', $this->settings['dir'] . 'css/input.css', array('acf-input'));
+			$dir = plugin_dir_url( __FILE__ );
+
+			wp_register_script('acf-input-widget-relationship-field', $dir . 'js/input.js', array('acf-input'));
+			wp_register_style('acf-input-widget-relationship-field', $dir . 'css/input.css', array('acf-input'));
 
 			wp_enqueue_script(array('acf-input-widget-relationship-field'));
 			wp_enqueue_style(array('acf-input-widget-relationship-field'));
@@ -335,7 +335,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 					}
 
 					//get acf field key
-					$field_key = get_field_reference( $key, $post_id );
+					$field_key = acf_get_field_reference( $key, $post_id );
 
 					if ( ! empty( $field_key ) ) {
 
@@ -565,7 +565,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 					endswitch;
 
 					//this allows for custom parent options outside of PAGE and MENU
-					$parent_post = apply_filters( 'acf_Widget/parent-post', $parent_post, $post );
+					$parent_post = apply_filters( 'acf_widget/parent-post', $parent_post, $post );
 
 					if ( $parent_post )
 						array_splice( $widgets, $i, 1, self::buildIncludeList( $parent_post->ID, $field ) );
