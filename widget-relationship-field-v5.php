@@ -149,7 +149,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 									<li>
 										<input type="hidden" name="<?php echo $field['name']; ?>[]" value="<?php echo $post->ID; ?>" />
 										<span data-id="<?php echo $k; ?>" class="acf-relationship-item">
-											<span class="relationship-item-info"><?php echo $post->type; ?></span>
+											<b class="relationship-item-info"><?php echo $post->type; ?></b> - 
 											<?php echo $post->title; ?>
 											<a href="#" class="acf-icon small dark"><i class="acf-sprite-remove"></i></a>
 										</span>
