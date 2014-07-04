@@ -34,6 +34,9 @@
 
 		}
 
+			var _this = this,
+				$el = this.$el;
+				
 			// add loading class, stops scroll loading
 			this.$choices.children('.list').html('<p>' + acf._e('relationship', 'loading') + '...</p>');
 
