@@ -31,8 +31,8 @@
 
 				}
 			});
-
-		}
+//		if using v5 of ACF
+		} else if(this.$el.data('type') === 'widget_field') {
 
 			var _this = this,
 				$el = this.$el;
@@ -77,9 +77,9 @@
 			
 			// update el data
 			this.$el.data('xhr', xhr);
-		}
+		
 //		if it's not our widget field, use default method
-		else {
+		} else {
 
 			this.default_fetch();
 
