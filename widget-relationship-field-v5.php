@@ -73,7 +73,7 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 				'field_key'		=> '',
 				'paged'          => 1,
 				'nonce'			=> '',
-				'posts_per_page' => 5
+				'posts_per_page' => 100
 			));
 
 			$options          = array_merge( $options, $_POST );
@@ -143,18 +143,21 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 							if ( $field['value'] ) {
 
 								foreach ( $field['value'] as $widget_id ) {
-
 									$post = $this->get_widget_object( $widget_id );
+									if( !empty($post) ) {
 									?>
 									<li>
 										<input type="hidden" name="<?php echo $field['name']; ?>[]" value="<?php echo $post->ID; ?>" />
-										<span data-id="<?php echo $k; ?>" class="acf-relationship-item">
+										<span data-id="<?php echo $widget_id; ?>" class="acf-relationship-item">
+											<?php if( !empty($post->type) ): ?>
 											<b class="relationship-item-info"><?php echo $post->type; ?></b> - 
+											<?php endif; ?>
 											<?php echo $post->title; ?>
 											<a href="#" class="acf-icon small dark"><i class="acf-sprite-remove"></i></a>
 										</span>
 									</li>
 									<?php
+									}
 								}
 							}
 							?>
@@ -295,7 +298,6 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 				return false;
 
 			$sidebar = $wp_registered_sidebars[$index];
-
 
 			/*--------------------------------------------
 			* dynamic_widgets (like dynamic_sidebars) uses the sidebar index.
@@ -711,6 +713,73 @@ if ( ! class_exists( 'acf_Widget' ) && class_exists( 'acf_field' ) ) {
 		 */
 		public function format_value_for_api( $value, $field ) {
 			return $this->format_value( $value, $field );
+		}
+
+		/*
+		 *  format_value_for_api()
+		 *
+		 *  This function is used to display a widget instance by its instance id
+		 *
+		 *  @param $instance_id  - the instance id of the widget
+		 *
+		 *  @return  $output  - the modified value
+		 *
+		 */
+		public static function widget_instance($instance_id, $args = array()) {
+			global $wp_registered_widgets, $wp_registered_sidebars, $sidebars_widgets;
+
+			// validation
+			if ( !array_key_exists($instance_id, $wp_registered_widgets) ) {
+				echo 'No widget found with that id'; return;
+			}
+
+			// find sidebar 
+			foreach($sidebars_widgets as $sidebar => $sidebar_widget){
+				foreach($sidebar_widget as $widget){
+					if ($widget == $instance_id) $current_sidebar = $sidebar;
+				}
+			}
+
+			$presentation = (isset($current_sidebar)) ? $wp_registered_sidebars[$current_sidebar] : array(
+				'name' => '', 
+				'id' => '',
+				'description' => '',
+				'class' => '',
+				'before_widget'=> '',
+				'after_widget'=> '',
+				'before_title'=> '',
+				'after_title' => ''
+			);
+
+			if( !empty($args) ) {
+				$presentation = array_merge($presentation, $args);
+			}
+
+			$params = array_merge(
+				array( array_merge( $presentation, array('instance_id' => $instance_id, 'widget_name' => $wp_registered_widgets[$instance_id]['name']) ) ),
+				(array) $wp_registered_widgets[$instance_id]['params']
+			);
+
+			// Substitute HTML id and class attributes into before_widget
+			$classname_ = '';
+			
+			foreach ( (array) $wp_registered_widgets[$instance_id]['classname'] as $cn ) {
+				if ( is_string($cn) )
+					$classname_ .= '_' . $cn;
+				elseif ( is_object($cn) )
+					$classname_ .= '_' . get_class($cn);
+			}
+
+			$classname_ = ltrim($classname_, '_');
+			$params[0]['before_widget'] = sprintf($params[0]['before_widget'], $instance_id, $classname_);
+
+			$params = apply_filters( 'dynamic_sidebar_params', $params ); // doesnt't add/minus from data
+
+			$callback = $wp_registered_widgets[$instance_id]['callback'];
+
+			if ( is_callable($callback) ) {
+				call_user_func_array($callback, $params);
+			}
 		}
 
 	}
